@@ -236,14 +236,6 @@ export default function ReporteEntregas() {
     );
   }, [data, byLabel]);
 
-  const anulados = useMemo(() => {
-    return (
-      byLabel.get("Pedidos Anulados") ||
-      byLabel.get("Anulados") ||
-      0
-    );
-  }, [byLabel]);
-
   const total = useMemo(() => {
     const backendTotal = Number(data?.kpis?.totalPedidos ?? 0);
     return backendTotal || totalDonut || 0;
@@ -575,7 +567,7 @@ export default function ReporteEntregas() {
       {!loading && data && data.filtros?.vista === vista && (
         <>
           {/* ===== KPIs (como Courier) ===== */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-7 gap-4 min-w-0">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4 min-w-0">
             <div className={CARD_MODEL}>
               <div className="flex items-center gap-2 text-xs text-gray60 mb-1">
                 <Icon icon="mdi:check-circle" className="text-emerald-600" />
@@ -603,17 +595,9 @@ export default function ReporteEntregas() {
             <div className={CARD_MODEL}>
               <div className="flex items-center gap-2 text-xs text-gray60 mb-1">
                 <Icon icon="mdi:account-cancel-outline" className="text-purple-500" />
-                No hizo pedido
+                No hizo pedido / Anuló
               </div>
               <p className="text-xl font-bold text-gray-900">{noHizo}</p>
-            </div>
-
-            <div className={CARD_MODEL}>
-              <div className="flex items-center gap-2 text-xs text-gray60 mb-1">
-                <Icon icon="mdi:cancel" className="text-orange-500" />
-                Anulados
-              </div>
-              <p className="text-xl font-bold text-gray-900">{anulados}</p>
             </div>
 
             <div className={CARD_MODEL}>

@@ -62,10 +62,10 @@ const formatDMY = (ymd?: string) => {
   return isNaN(dt.getTime())
     ? ymd
     : dt.toLocaleDateString("es-PE", {
-        day: "2-digit",
-        month: "2-digit",
-        year: "numeric",
-      });
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    });
 };
 
 /* ================= helpers ================= */
@@ -97,9 +97,9 @@ const metodoPagoLabel = (metodoPago: unknown) => {
   // si no hay método => Pedido rechazado
   if (!m) return "Pedido rechazado";
 
-  if (m === "DIRECTO_ECOMMERCE") return "Pago Digital al Ecommerce";
-  if (m === "BILLETERA") return "Pago Digital al Courier";
-  if (m === "EFECTIVO") return "Efectivo";
+  if (m === "DIRECTO_ECOMMERCE") return "Pago Digital al Ecommerce / Pagado";
+  if (m === "BILLETERA") return "Pago Digital al Courier / Pagado";
+  if (m === "EFECTIVO") return "Efectivo / Pagado";
 
   return String(metodoPago ?? "Pedido rechazado");
 };
@@ -127,15 +127,13 @@ function motivoColumna(p: any): string {
       p?.observado_estado ??
       p?.observacionEstado ??
       p?.observacion_estado ??
+      p?.motivoRepartidor ??
+      p?.motivo ??
       "";
     return String(obs ?? "").trim();
   }
 
-  // si tiene método de pago => motivo de edición del servicio
-  const mp = normMetodoPago(metodoPagoDe(p));
-  if (mp) return String(p?.motivoRepartidor ?? "").trim();
-
-  return "";
+  return String(p?.motivoRepartidor ?? p?.motivo ?? "").trim();
 }
 
 /* ================= Descarga REAL ================= */
@@ -391,7 +389,7 @@ export default function VizualisarPedidos({
                           </td>
 
                           <td className="px-4 py-3 text-slate-700">
-                            {metodoPagoLabel(mp)} / Pagado
+                            {metodoPagoLabel(mp)}
                           </td>
 
                           <td className="px-4 py-3 text-slate-700 tabular-nums">
@@ -583,4 +581,3 @@ export default function VizualisarPedidos({
     </div>
   );
 }
-  

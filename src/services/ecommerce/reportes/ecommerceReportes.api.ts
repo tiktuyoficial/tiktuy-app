@@ -155,6 +155,9 @@ export async function getEntregasReporte(
       totalPedidos: Number(raw.kpis?.totalPedidos ?? 0),
       entregados: Number(raw.kpis?.entregados ?? 0),
       rechazados: Number(raw.kpis?.rechazados ?? 0),
+      noResponde: Number(raw.kpis?.noResponde ?? 0),
+      noHizo: Number(raw.kpis?.noHizo ?? 0),
+      anulados: Number(raw.kpis?.anulados ?? 0),
       tasaEntrega: Number(raw.kpis?.tasaEntrega ?? 0),
     },
 
@@ -170,6 +173,9 @@ export async function getEntregasReporte(
         label: e.label,
         entregados: Number(e.entregados ?? 0),
         rechazados: Number(e.rechazados ?? 0),
+        noResponde: Number(e.noResponde ?? 0),
+        noHizo: Number(e.noHizo ?? 0),
+        anulados: Number(e.anulados ?? 0),
       }))
       : [],
 

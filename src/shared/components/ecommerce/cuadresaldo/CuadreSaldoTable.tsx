@@ -215,8 +215,8 @@ export default function CuadreSaldoTable({
               <col className="w-[18%]" />
               <col className="w-[18%]" />
               <col className="w-[18%]" />
-              <col className="w-[18%]" />
-              <col className="w-[12%]" />
+              <col className="w-[26%]" />
+              <col className="w-[5%]" />
             </colgroup>
 
             <thead className="bg-[#E5E7EB]">
@@ -263,7 +263,7 @@ export default function CuadreSaldoTable({
                     <td className="p-3">{money(getNeto(r))}</td>
 
 
-                    <td className="p-3 text-right">
+                    <td className="p-3 text-center">
 
                       <TableActionx
                         variant="view"

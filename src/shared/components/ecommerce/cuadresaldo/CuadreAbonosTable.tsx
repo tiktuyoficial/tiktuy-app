@@ -144,9 +144,9 @@ export default function CuadreAbonosTable({
                     <table className="min-w-full table-fixed text-sm bg-white border-b border-gray30 rounded-t-md">
                         <colgroup>
                             <col className="w-[20%]" />
-                            <col className="w-[20%]" />
-                            <col className="w-[25%]" />
-                            <col className="w-[35%]" />
+                            <col className="w-[30%]" />
+                            <col className="w-[45%]" />
+                            <col className="w-[5%]" />
                         </colgroup>
 
                         <thead className="bg-[#E5E7EB]">
@@ -185,8 +185,8 @@ export default function CuadreAbonosTable({
                                             </span>
                                         </td>
 
-                                        <td className="px-4 py-3 text-right">
-                                            <div className="flex items-center justify-end gap-2">
+                                        <td className="px-4 py-3 text-center">
+                                            <div className="flex items-center justify-center gap-2">
                                                 {/* Ver detalle */}
                                                 <TableActionx
                                                     variant="view"
