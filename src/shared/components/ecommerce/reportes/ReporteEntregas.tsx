@@ -801,11 +801,7 @@ export default function ReporteEntregas() {
                         stackId="a"
                         fill={colorByLabel("No hizo")}
                       />
-                      <Bar
-                        dataKey="Anulados"
-                        stackId="a"
-                        fill={colorByLabel("Anulados")}
-                      />
+                    
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
@@ -844,7 +840,6 @@ export default function ReporteEntregas() {
                       <Bar dataKey="Rechazados" fill={colorByLabel("Rechazados")} radius={[6, 6, 0, 0]} />
                       <Bar dataKey="No responde" fill={colorByLabel("No responde")} radius={[6, 6, 0, 0]} />
                       <Bar dataKey="No hizo pedido" fill={colorByLabel("No hizo")} radius={[6, 6, 0, 0]} />
-                      <Bar dataKey="Anulados" fill={colorByLabel("Anulados")} radius={[6, 6, 0, 0]} />
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
