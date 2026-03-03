@@ -50,10 +50,10 @@ const estadoChip = (estado?: string) => {
 const fmtFecha = (iso?: string) =>
   iso
     ? new Intl.DateTimeFormat("es-PE", {
-        day: "2-digit",
-        month: "2-digit",
-        year: "numeric",
-      }).format(new Date(iso))
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    }).format(new Date(iso))
     : "—";
 
 export default function ValidarMovimientoCourierModal({
@@ -144,7 +144,7 @@ export default function ValidarMovimientoCourierModal({
         cantidades,
       });
 
-      if (editoAlgo || obs) {
+      if (editoAlgo) {
         notify("Movimiento observado", "error");
       } else {
         notify(
