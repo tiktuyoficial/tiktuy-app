@@ -149,10 +149,10 @@ const isSelectableEstado = (estado?: AbonoEstado) => {
 const EcommerceCuadreSaldoTable: React.FC<Props> = ({ token }) => {
   const { notify } = useNotification();
   // ==== sedes ====
-  const [sedes, setSedes] = useState<SedeCuadreItem[]>([]);
+  const [, setSedes] = useState<SedeCuadreItem[]>([]);
   const [sedeId, setSedeId] = useState<number | "">("");
   const [canFilterBySede, setCanFilterBySede] = useState(false);
-  const [loadingSedes, setLoadingSedes] = useState(false);
+  const [, setLoadingSedes] = useState(false);
   const [sedesError, setSedesError] = useState<string | null>(null);
 
   // ==== ecommerce / fechas ====
