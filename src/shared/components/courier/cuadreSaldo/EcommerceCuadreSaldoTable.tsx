@@ -569,34 +569,6 @@ const EcommerceCuadreSaldoTable: React.FC<Props> = ({ token }) => {
 
       {/* Filtros */}
       <div className="bg-white p-5 rounded shadow-default border-b-4 border-gray90 flex items-end gap-4">
-        {/* Sede */}
-        <Selectx
-          id="f-sede"
-          label="Sede"
-          value={sedeId === "" ? "" : String(sedeId)}
-          onChange={(e) =>
-            setSedeId(e.target.value === "" ? "" : Number(e.target.value))
-          }
-          placeholder={
-            loadingSedes
-              ? "Cargando sedes..."
-              : canFilterBySede
-                ? "Todas las sedes"
-                : "Sede actual"
-          }
-          className="w-full"
-          disabled={loadingSedes || (!canFilterBySede && sedes.length <= 1)}
-        >
-          {canFilterBySede && <option value="">— Todas las sedes —</option>}
-          {sedes.map((s) => (
-            <option key={s.id} value={s.id}>
-              {s.nombre_almacen}
-              {s.ciudad ? ` (${s.ciudad})` : ""}{" "}
-              {s.es_principal ? "· Principal" : ""}
-            </option>
-          ))}
-        </Selectx>
-
         {/* Ecommerce */}
         <Selectx
           id="f-ecommerce"

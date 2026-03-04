@@ -252,64 +252,29 @@ export default function ReporteEntregasC() {
     return fullMonth;
   }, [data, vista, desde]);
 
-  // MOCK HISTORIAL DATA IF MISSING (For Anual Visualization)
-  const historialData = useMemo(() => {
-    if (data?.historial && data.historial.length > 0) return data.historial;
+  // Chart anual: usa la evolución REAL del backend (mes a mes)
+  const MONTH_LABELS = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
 
-    if (vista === "anual" && donutData.length > 0) {
-      const months = [
-        "Ene",
-        "Feb",
-        "Mar",
-        "Abr",
-        "May",
-        "Jun",
-        "Jul",
-        "Ago",
-        "Sep",
-        "Oct",
-        "Nov",
-        "Dic",
-      ];
+  const chartDataAnual = useMemo(() => {
+    if (vista !== "anual" || !data?.evolucion || data.filtros?.vista !== vista)
+      return [];
 
-      const date = new Date();
-      const currentYear = date.getFullYear();
-      const currentMonth = date.getMonth();
-      const selectedYear = parseInt(desde.split("-")[0]);
+    // Mapa de mes → datos reales del backend
+    const byMonth = new Map<number, typeof data.evolucion[0]>();
+    data.evolucion.forEach((d) => byMonth.set(Number(d.label), d));
 
-      let validMonthsCount = 0;
-      if (selectedYear < currentYear) validMonthsCount = 12;
-      else if (selectedYear === currentYear)
-        validMonthsCount = currentMonth + 1;
-      else validMonthsCount = 0;
-
-      const keys =
-        donutData.length > 0
-          ? donutData.map((d) => String(d.label))
-          : ["Pedidos Entregados", "Pedidos Rechazados", "Pedidos Anulados"];
-
-      return months.map((m, i) => {
-        const row: any = { label: m };
-
-        keys.forEach((k) => {
-          const baseTotal =
-            donutData.find((x) => String(x.label) === k)?.value ?? 0;
-
-          let val = 0;
-          if (validMonthsCount > 0 && i < validMonthsCount) {
-            const base = Math.floor(Number(baseTotal) / validMonthsCount);
-            const remainder = Number(baseTotal) % validMonthsCount;
-            val = base + (i < remainder ? 1 : 0);
-          }
-          row[k] = val;
-        });
-
-        return row;
-      });
-    }
-
-    return [];
-  }, [data, vista, donutData, desde]);
+    // Siempre 12 meses; si no hay datos ese mes → todo 0
+    return MONTH_LABELS.map((label, i) => {
+      const d = byMonth.get(i + 1);
+      return {
+        label,
+        "Pedidos Entregados": d?.entregados || 0,
+        "Pedidos Rechazados": d?.rechazados || 0,
+        "No responde / Núm. equivocado": d?.noResponde || 0,
+        "Pedidos Anulados": d?.anulados || 0,
+      };
+    });
+  }, [data, vista]);
 
   return (
     <div className="mt-5 flex flex-col gap-6 min-w-0">
@@ -840,11 +805,11 @@ export default function ReporteEntregasC() {
                 </p>
               </div>
 
-              {historialData.length > 0 ? (
+              {chartDataAnual.length > 0 ? (
                 <div className="w-full h-[380px] min-w-0">
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart
-                      data={historialData}
+                      data={chartDataAnual}
                       margin={{ top: 10, right: 20, left: 10, bottom: 10 }}
                     >
                       <CartesianGrid strokeDasharray="3 3" vertical={false} />
