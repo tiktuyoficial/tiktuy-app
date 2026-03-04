@@ -222,7 +222,7 @@ export default function VerMovimientoRealizadoModal(props: Props) {
   const totalItems = items.length;
 
   const totalCantidad = items.reduce(
-    (acc: number, it: any) => acc + Number(it?.cantidad_validada ?? 0),
+    (acc: number, it: any) => acc + Number(it?.cantidad_validada ?? it?.cantidad ?? 0),
     0
   );
 
@@ -653,7 +653,7 @@ export default function VerMovimientoRealizadoModal(props: Props) {
 
                               <td className="p-3 text-right">
                                 <span className="inline-flex items-center justify-center min-w-[44px] rounded-full bg-slate-50 border border-slate-200 px-3 py-1 text-xs font-bold text-slate-800 tabular-nums">
-                                  {String(Number(it.cantidad_validada ?? 0)).padStart(
+                                  {String(Number(it.cantidad_validada ?? it.cantidad ?? 0)).padStart(
                                     2,
                                     "0"
                                   )}

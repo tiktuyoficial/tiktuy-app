@@ -255,10 +255,10 @@ export default function ValidarMovimientoCourierModal({
               </span>
             </div>
 
-            {/* ✅ IMPORTANTE: sin scroll horizontal; truncamos producto */}
+            {/*  IMPORTANTE: sin scroll horizontal; truncamos producto */}
             <div className="max-h-[42vh] overflow-y-auto overflow-x-hidden">
               <table className="w-full text-sm table-fixed">
-                {/* ✅ fija columnas para que Cantidad nunca se salga */}
+                {/*  fija columnas para que Cantidad nunca se salga */}
                 <colgroup>
                   <col className="w-[96px]" />   {/* Código */}
                   <col />                        {/* Producto */}
@@ -295,7 +295,7 @@ export default function ValidarMovimientoCourierModal({
                           </div>
                         </td>
 
-                        {/* ✅ aquí aplicamos “…” real */}
+                        {/*  aquí aplicamos “…” real */}
                         <td className="px-4 py-3 align-top min-w-0">
                           <div className="min-w-0 pr-2">
                             <div

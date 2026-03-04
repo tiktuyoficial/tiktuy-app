@@ -632,7 +632,7 @@ export default function DetallesMovimientoCourierModal({
                                 <td className="p-3 text-right">
                                   <span className="inline-flex items-center justify-center min-w-[44px] rounded-full bg-slate-50 border border-slate-200 px-3 py-1 text-xs font-bold text-slate-800 tabular-nums">
                                     {String(
-                                      Number(dp.cantidad_validada ?? 0)
+                                      Number(dp.cantidad_validada ?? dp.cantidad ?? 0)
                                     ).padStart(2, "0")}
                                   </span>
                                 </td>
