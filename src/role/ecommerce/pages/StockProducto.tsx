@@ -1,117 +1,275 @@
-import { useState, useEffect } from 'react';
-import AnimatedExcelMenu from '@/shared/components/ecommerce/AnimatedExcelMenu';
-import StockFilters from '@/shared/components/ecommerce/stock/StockFilters';
-import StockTable from '@/shared/components/ecommerce/stock/StockTable';
-import ProductoFormModal from '@/shared/components/ecommerce/ProductoFormModal';
-import { TbCubePlus } from 'react-icons/tb';
-import { useAuth } from '@/auth/context';
-import { fetchProductosFiltrados } from '@/services/ecommerce/producto/producto.api';
-import type { Producto } from '@/services/ecommerce/producto/producto.types';
+import { useState, useEffect, useRef } from "react";
+import AnimatedExcelMenu from "@/shared/components/ecommerce/AnimatedExcelMenu";
+import StockFilters, {
+  type StockFilterValue,
+} from "@/shared/components/ecommerce/stock/StockFilters";
+import StockTable from "@/shared/components/ecommerce/stock/StockTable";
+import { useAuth } from "@/auth/context";
+import {
+  fetchProductosFiltrados,
+} from "@/services/ecommerce/producto/producto.api";
+import type { Producto } from "@/services/ecommerce/producto/producto.types";
+import ImportExcelFlow from "@/shared/components/ecommerce/excel/ImportExcelFlow";
+
+import ProductoCrearModal from "@/shared/components/ecommerce/stock/ProductoCrearModal";
+import ProductoVerModal from "@/shared/components/ecommerce/stock/ProductoVerModal";
+import ProductoEditarModal from "@/shared/components/ecommerce/stock/ProductoEditarModal";
+import Buttonx from "@/shared/common/Buttonx";
+import Tittlex from "@/shared/common/Tittlex";
+import ModalSlideRight from "@/shared/common/ModalSlideRight";
+
+import {
+  downloadProductosTemplate,
+  triggerBrowserDownload,
+} from "@/services/ecommerce/exportExcel/Producto/exportProductoExcel.api";
+
+type UiFilters = StockFilterValue & {
+  order?: "new_first" | "price_asc" | "price_desc";
+};
+
+const PER_PAGE = 5;
 
 export default function StockPage() {
   const { token } = useAuth();
-  const [openModal, setOpenModal] = useState(false);
-  const [productos, setProductos] = useState<Producto[]>([]);
-  const [filters, setFilters] = useState<any>({});
-  const [productoSeleccionado, setProductoSeleccionado] =
-    useState<Producto | null>(null);
-  const [modoSeleccionado, setModoModal] = useState<'crear' | 'editar' | 'ver'>(
-    'crear'
-  );
 
-  const handleClose = () => {
-    setOpenModal(false);
-    setProductoSeleccionado(null);
-    setModoModal('crear');
-  };
+  // ---------------- PAGINACIÓN ----------------
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
 
-  const handleDescargarPlantilla = () => {
-    console.log('Descargar plantilla');
-  };
+  // ---------------- MODALES ----------------
+  const [openCrear, setOpenCrear] = useState(false);
+  const [openEditar, setOpenEditar] = useState(false);
+  const [openVer, setOpenVer] = useState(false);
 
-  const handleImportarArchivo = () => {
-    console.log('Importar archivo');
-  };
+  // ---------------- DATA ----------------
+  const [productoSel, setProductoSel] = useState<Producto | null>(null);
+  const [productosVisibles, setProductosVisibles] = useState<Producto[]>([]);
+  const [loadingProducts, setLoadingProducts] = useState(false);
 
-  const cargarProductos = async (filtros = filters) => {
+  // ---------------- FILTROS ----------------
+  const [filters, setFilters] = useState<UiFilters>({
+    almacenamiento_id: "",
+    categoria_id: "",
+    estado: "",
+    nombre: "",
+    stock_bajo: false,
+    precio_bajo: false,
+    precio_alto: false,
+    search: "",
+    movimientos_sedes: "",
+    order: "new_first",
+  });
+
+  const debounceMs = 150;
+  const debounceRef = useRef<number | null>(null);
+
+  /* ========================
+     CARGA BACKEND
+  ======================== */
+  const cargarProductos = async (filtros = filters, pageToLoad = page) => {
     if (!token) return;
+
+    setLoadingProducts(true);
+
     try {
-      const data = await fetchProductosFiltrados(filtros, token);
-      setProductos(data);
+      // -------- PRODUCTOS MOVIDOS -------- //
+      if (filtros.movimientos_sedes && Number(filtros.movimientos_sedes) > 0) {
+        const resp = await fetchProductosFiltrados(
+          {
+            almacenamiento_id: Number(filtros.movimientos_sedes),
+            q: filtros.search,
+            categoria_id: filtros.categoria_id,
+            estado: filtros.estado,
+            precio_bajo: filtros.precio_bajo,
+            precio_alto: filtros.precio_alto,
+            stock_bajo: filtros.stock_bajo,
+            order: filtros.order ?? "new_first",
+
+            only_with_stock: false,
+
+            page: pageToLoad,
+            perPage: PER_PAGE,
+          },
+          token
+        );
+
+        setProductosVisibles(resp?.data ?? []);
+        setTotalPages(resp?.pagination?.totalPages ?? 1);
+        setTotalItems(resp?.pagination?.total ?? 0);
+        return;
+      }
+
+      // -------- PRODUCTOS NORMALES -------- //
+      const resp = await fetchProductosFiltrados(
+        {
+          ...filtros,
+          q: filtros.search,
+          page: pageToLoad,
+          perPage: PER_PAGE,
+          order: filtros.order ?? "new_first",
+        },
+        token
+      );
+
+      setProductosVisibles(resp?.data ?? []);
+      setTotalPages(resp?.pagination?.totalPages ?? 1);
+      setTotalItems(resp?.pagination?.total ?? 0);
     } catch (err) {
-      console.error('Error cargando productos:', err);
+      console.error("Error cargando productos:", err);
+    } finally {
+      setLoadingProducts(false);
     }
   };
 
-  const handleProductoCreado = (producto: Producto) => {
-    console.log('Producto creado o editado:', producto);
-    setOpenModal(false);
-    setProductoSeleccionado(null);
-    cargarProductos();
-  };
-
-  const handleAbrirModalNuevo = () => {
-    setModoModal('crear');
-    setProductoSeleccionado(null);
-    setOpenModal(true);
-  };
-
-  const handleVerProducto = (producto: Producto) => {
-    setModoModal('ver');
-    setProductoSeleccionado(producto);
-    setOpenModal(true);
-  };
-
-  const handleEditarProducto = (producto: Producto) => {
-    setModoModal('editar');
-    setProductoSeleccionado(producto);
-    setOpenModal(true);
-  };
-
+  /* ========================
+     DEBOUNCE FILTROS
+  ======================== */
   useEffect(() => {
-    if (token) cargarProductos();
+    if (!token) return;
+
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+
+    debounceRef.current = window.setTimeout(() => {
+      setPage(1);
+    }, debounceMs);
+
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
   }, [filters, token]);
 
+
+  /* ========================
+     CAMBIO DE PÁGINA
+  ======================== */
+  useEffect(() => {
+    cargarProductos(filters, page);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filters, page]);
+
+
+  /* ========================
+     CRUD
+  ======================== */
+  const handleProductoCreado = (producto: Producto) => {
+    setProductosVisibles((prev) => [producto, ...prev]);
+    setOpenCrear(false);
+  };
+
+  const handleProductoActualizado = (producto: Producto) => {
+    setProductosVisibles((prev) =>
+      prev.map((p) =>
+        p.uuid === producto.uuid || p.id === producto.id ? producto : p
+      )
+    );
+    setOpenEditar(false);
+    setProductoSel(null);
+  };
+
+  /* ========================
+     HANDLERS
+  ======================== */
+  const handleDescargarPlantilla = async () => {
+    try {
+      const res = await downloadProductosTemplate();
+      triggerBrowserDownload(res);
+    } catch (err) {
+      console.error("Error al descargar plantilla:", err);
+    }
+  };
+
+  const almacenamientoIdCreacion =
+    filters.almacenamiento_id && !isNaN(Number(filters.almacenamiento_id))
+      ? Number(filters.almacenamiento_id)
+      : 0;
+
+  const closeEditar = () => {
+    setOpenEditar(false);
+    setProductoSel(null);
+  };
+
+  const closeVer = () => {
+    setOpenVer(false);
+    setProductoSel(null);
+  };
+
+
+  /* ========================
+     RENDER
+  ======================== */
   return (
     <section className="mt-8 space-y-6">
-      <div className="flex justify-between items-start">
-        <div>
-          <h1 className="text-3xl font-bold text-primary">
-            Stock de Productos
-          </h1>
-          <p className="text-gray-500 mt-1">Control de Stock y Movimientos</p>
-        </div>
+      <div className="flex flex-col gap-3 sm:flex-row sm:justify-between sm:items-end">
+        <Tittlex
+          title="Stock de Productos"
+          description="Control de Stock y Movimientos"
+        />
 
-        <div className="flex gap-2 items-center">
-          <AnimatedExcelMenu
-            onTemplateClick={handleDescargarPlantilla}
-            onImportClick={handleImportarArchivo}
+        <div className="flex gap-2 items-end">
+          <ImportExcelFlow
+            token={token ?? ""}
+            onImported={() => cargarProductos()}
+          >
+            {(openPicker) => (
+              <AnimatedExcelMenu
+                onTemplateClick={handleDescargarPlantilla}
+                onImportClick={openPicker}
+              />
+            )}
+          </ImportExcelFlow>
+
+          <Buttonx
+            label="Nuevo Producto"
+            icon="tabler:cube-plus"
+            variant="secondary"
+            onClick={() => setOpenCrear(true)}
+            className="font-light"
           />
-
-          <button
-            onClick={handleAbrirModalNuevo}
-            className="text-white flex px-3 py-2 bg-[#1A253D] items-center gap-2 rounded-sm text-sm hover:opacity-90 transition">
-            <TbCubePlus size={18} />
-            <span>Nuevo Producto</span>
-          </button>
         </div>
       </div>
 
-      <StockFilters onFilterChange={setFilters} />
+      <StockFilters onFilterChange={(f) => setFilters(f)} />
 
       <StockTable
-        productos={productos}
-        onVer={handleVerProducto}
-        onEditar={handleEditarProducto}
+        productos={productosVisibles}
+        loading={loadingProducts}
+        filtrarInactivos={false}
+        soloLectura={Boolean(filters.movimientos_sedes)}
+        currentPage={page}
+        totalPages={totalPages}
+        total={totalItems}
+        onPageChange={setPage}
+        onVer={(p) => {
+          setProductoSel(p);
+          setOpenVer(true);
+        }}
+        onEditar={(p) => {
+          setProductoSel(p);
+          setOpenEditar(true);
+        }}
       />
 
-      <ProductoFormModal
-        open={openModal}
-        onClose={handleClose}
-        onCreated={handleProductoCreado}
-        initialData={productoSeleccionado}
-        modo={modoSeleccionado}
-      />
+      {/* MODALES SLIDE RIGHT */}
+      <ModalSlideRight open={openCrear} onClose={() => setOpenCrear(false)}>
+        <ProductoCrearModal
+          onClose={() => setOpenCrear(false)}
+          onCreated={handleProductoCreado}
+          almacenamientoId={almacenamientoIdCreacion}
+        />
+      </ModalSlideRight>
+
+      <ModalSlideRight open={openEditar} onClose={closeEditar}>
+        <ProductoEditarModal
+          onClose={closeEditar}
+          initialData={productoSel}
+          onUpdated={handleProductoActualizado}
+        />
+      </ModalSlideRight>
+
+      <ModalSlideRight open={openVer} onClose={closeVer}>
+        <ProductoVerModal onClose={closeVer} data={productoSel} />
+      </ModalSlideRight>
     </section>
   );
 }

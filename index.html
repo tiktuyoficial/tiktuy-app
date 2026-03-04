@@ -1,13 +1,144 @@
 <!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/assets/icons/logo-tiktuy.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>TIKTUY</title>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
+<html lang="es" translate="no">
+
+<head>
+  <!-- Google Tag Manager -->
+  <script>(function (w, d, s, l, i) {
+      w[l] = w[l] || []; w[l].push({
+        'gtm.start':
+          new Date().getTime(), event: 'gtm.js'
+      }); var f = d.getElementsByTagName(s)[0],
+        j = d.createElement(s), dl = l != 'dataLayer' ? '&l=' + l : ''; j.async = true; j.src =
+          'https://www.googletagmanager.com/gtm.js?id=' + i + dl; f.parentNode.insertBefore(j, f);
+    })(window, document, 'script', 'dataLayer', 'GTM-K8B8WN7M');</script>
+  <!-- End Google Tag Manager -->
+  <meta charset="UTF-8" />
+  <meta name="google" content="notranslate">
+  <meta http-equiv="Content-Language" content="es">
+  <link rel="icon" type="image/svg+xml" href="/logo_tiktuy.png" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="google-site-verification" content="nKRZ9eRo0X4OeuCUEzuAimFG4PL2gxKCeOAuc3IX3Xo" />
+  <meta http-equiv="Content-Security-Policy" content="
+    default-src 'self';
+
+    script-src
+      'self'
+      'unsafe-inline'
+      https://www.googletagmanager.com;
+
+    frame-src
+      'self'
+      https://www.googletagmanager.com;
+
+    style-src
+      'self'
+      'unsafe-inline'
+      https://fonts.googleapis.com;
+
+    style-src-elem
+      'self'
+      'unsafe-inline'
+      https://fonts.googleapis.com;
+
+    font-src
+      'self'
+      data:
+      https://fonts.gstatic.com;
+
+    img-src
+      'self'
+      data:
+      https:;
+
+    connect-src
+      'self'
+      %VITE_API_URL%
+      https://www.tiktuy.lat
+      wss://www.tiktuy.lat
+      wss://tiktuy-app-backend-production.up.railway.app
+      https:;
+  " />
+
+
+  <title>TIKTUY</title>
+  <meta name="description"
+    content="Software todo en uno para ecommerce, couriers y repartidores. Gestiona pedidos, asigna envíos y controla tu logística en tiempo real con TIKTUY." />
+  <meta name="keywords"
+    content="TIKTUY, comercio electrónico, tiendas en línea, software de comercio electrónico, ecommerce, repartidor, motorizado, pedidos, fulfillment, logística, envíos, courier, sistema de gestión, tracking, última milla, app de entregas, control de flotas, gestión de rutas, delivery, envíos express, same day delivery, operador logístico, software logístico, rastreo de pedidos, prueba de entrega, POD, gestión de stock, inventario, dropshipping, logística inversa, transporte, distribución, supply chain, saas, plataforma logística, perú, latam, Arequipa" />
+  <meta name="author" content="TIKTUY" />
+  <meta name="robots" content="index, follow" />
+  <link rel="canonical" href="https://tiktuy.lat/" />
+  <!-- Open Graph / Facebook / WhatsApp -->
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://tiktuy.lat/" />
+  <meta property="og:title" content="TIKTUY - Plataforma de Logística y Ecommerce" />
+  <meta property="og:description"
+    content="Software todo en uno para ecommerce, couriers y repartidores. Gestiona pedidos y logística en un solo lugar." />
+  <meta property="og:image" content="https://tiktuy.lat/assets/icons/logo-tiktuy.svg" />
+
+  <!-- Twitter -->
+  <meta property="twitter:card" content="summary_large_image" />
+  <meta property="twitter:url" content="https://tiktuy.lat/" />
+  <meta property="twitter:title" content="TIKTUY - Plataforma de Logística y Ecommerce" />
+  <meta property="twitter:description"
+    content="Software todo en uno para ecommerce, couriers y repartidores. Gestiona pedidos y logística en un solo lugar." />
+  <meta property="twitter:image" content="https://tiktuy.lat/assets/icons/logo-tiktuy.svg" />
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": [{
+          "@type": "Question",
+          "name": "¿Qué es TIKTUY para Ecommerce?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "TIKTUY es el software ideal para tiendas en línea. Centraliza pedidos, gestiona envíos a contraentrega y conecta directamente con couriers y motorizados para optimizar tu logística."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "¿Cómo ayuda TIKTUY a los Couriers?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Permite recibir pedidos de múltiples ecommerce, organizar rutas de despacho, asignar repartidores y monitorear entregas en tiempo real con prueba de entrega digital."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "¿Qué función cumplen los Repartidores Motorizados en TIKTUY?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Los motorizados usan la app para recibir asignaciones, gestionar su ruta de entrega, contactar al cliente y subir evidencias de entrega (fotos y firma) al instante."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "¿TIKTUY ofrece servicio de Fulfillment?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Sí, TIKTUY facilita la gestión de inventarios y fulfillment, permitiendo un control preciso del stock y agilizando el proceso de empaquetado y envío."
+          }
+        },
+         {
+          "@type": "Question",
+          "name": "¿Puedo hacer seguimiento o Tracking de mis pedidos?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Absolutamente. TIKTUY ofrece tracking en tiempo real para ecommerce, couriers y clientes finales, asegurando transparencia en la última milla."
+          }
+        }
+      ]
+    }
+  </script>
+</head>
+
+<body>
+  <!-- Google Tag Manager (noscript) -->
+  <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-K8B8WN7M" height="0" width="0"
+      style="display:none;visibility:hidden"></iframe></noscript>
+  <!-- End Google Tag Manager (noscript) -->
+  <div id="root"></div>
+  <script type="module" src="/src/main.tsx"></script>
+</body>
+
 </html>

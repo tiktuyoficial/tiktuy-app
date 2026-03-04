@@ -1,7 +1,9 @@
+// src/router/PrivateRoute.tsx
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/auth/context/useAuth';
 import type { JSX } from 'react';
 import type { Role } from '@/auth/constants/roles';
+import LoadingBouncing from '@/shared/animations/LoadingBouncing';
 
 type Props = {
   children: JSX.Element;
@@ -9,33 +11,70 @@ type Props = {
   allowModulo?: boolean;
 };
 
+// Mapeo: normaliza roles representante_* a su área base
+function normalizeRole(name?: string): Role | undefined {
+  if (!name) return undefined;
+  const n = name.toLowerCase() as Role;
+
+  // Alias legacy y nuevos representantes
+
+  if (n === 'representante_courier') return 'courier';
+
+  const known: Role[] = [
+    'admin',
+    'ecommerce',
+    'courier',
+    'motorizado',
+    'trabajador',
+    'representante_ecommerce',
+    'representante_courier',
+  ];
+  return known.includes(n) ? n : undefined;
+}
+
+
 export default function PrivateRoute({ children, allowedRoles, allowModulo }: Props) {
   const { user, loading } = useAuth();
   const location = useLocation();
 
-  if (loading) {
-    return <div className="p-4">Cargando sesión...</div>;
+  if (loading) return <LoadingBouncing />;
+
+  // Rutas públicas que deben poder renderizarse aunque haya PrivateRoute envolviendo
+  const PUBLIC_WITHIN_PRIVATE = [
+    '/registro-invitacion',
+    '/registro-invitacion-courier',
+    '/registro-invitacion-ecommerce',
+    '/crear-password',
+    '/crear-password-motorizado',
+    '/invitar-sede',
+  ];
+  if ( PUBLIC_WITHIN_PRIVATE.some(p => location.pathname.startsWith(p)) ) {
+    return children;
   }
 
+  // Si no hay sesión, a login
   if (!user) {
-    return <Navigate to="/" state={{ from: location }} replace />;
+    return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  const userRole = user.rol?.nombre;
+  const userRole = normalizeRole(user.rol?.nombre);
 
-  // Validar acceso por rol si se especifica
+  // Validación por roles permitidos
   if (allowedRoles && (!userRole || !allowedRoles.includes(userRole))) {
     return <Navigate to="/unauthorized" replace />;
   }
 
-  // Validar acceso por módulo asignado si se especifica
+  // Validación por módulo solo para trabajadores
   if (allowModulo) {
-    if (user.trabajador?.modulo_asignado) {
-      return children;
-    }
-    return <div className="p-4">Cargando módulo asignado...</div>;
+    if (userRole !== 'trabajador') return <Navigate to="/unauthorized" replace />;
+
+    const moduloAsignado = user.perfil_trabajador?.modulo_asignado;
+    if (!moduloAsignado) return <LoadingBouncing />;
+
+    const currentPath = location.pathname.split('/')[1];
+    const tieneAcceso = moduloAsignado.includes(currentPath);
+    if (!tieneAcceso) return <Navigate to="/unauthorized" replace />;
   }
 
-  // Si no se especifica ninguna restricción, permitir acceso
   return children;
 }

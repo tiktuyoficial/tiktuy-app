@@ -1,276 +1,311 @@
-import { useState, useEffect } from 'react';
-import { createAlmacenamiento, updateAlmacenamiento } from '@/services/ecommerce/almacenamiento/almacenamiento.api';
-import type { Almacenamiento } from '@/services/ecommerce/almacenamiento/almacenamiento.types';
-import { PiGarageLight } from 'react-icons/pi';
-import { FaSpinner } from 'react-icons/fa';
+// src/shared/components/ecommerce/CrearAlmacenModal.tsx
+import { useEffect, useMemo, useState } from "react";
+import type { Almacenamiento } from "@/services/ecommerce/almacenamiento/almacenamiento.types";
+import {
+  crearSedeSecundariaConInvitacion,
+  updateAlmacenamiento,
+} from "@/services/ecommerce/almacenamiento/almacenamiento.api";
+import Tittlex from "@/shared/common/Tittlex";
+import { Inputx, InputxPhone } from "@/shared/common/Inputx";
+import Buttonx from "@/shared/common/Buttonx";
 
-interface Props {
+type Props = {
   token: string;
-  onClose(): void;
-  onSuccess(nuevo: Almacenamiento): void;
-  modo?: 'crear' | 'editar';
-  almacen?: Almacenamiento | null;
-}
+  almacen: Almacenamiento | null;
+  modo: "crear" | "editar";
+  onClose: () => void;
+  onSuccess: (almacen: Almacenamiento) => void;
+};
 
-interface Ubigeo {
-  codigo: string;
-  nombre: string; // Formato: "DEPARTAMENTO/PROVINCIA/DISTRITO"
-}
+type FormState = {
+  nombre_sede: string;
+  departamento?: string | null;
+  provincia?: string | null;
+  ciudad: string;
+  direccion: string;
+  representante: {
+    nombres: string;
+    apellidos: string;
+    dni: string;
+    celular?: string | null;
+    correo: string;
+  };
+};
 
 export default function CrearAlmacenModal({
   token,
+  almacen,
+  modo,
   onClose,
   onSuccess,
-  modo = 'crear',
-  almacen,
 }: Props) {
-  const [form, setForm] = useState({
-    nombre_almacen: '',
-    departamento: '',
-    provincia: '',
-    distrito: '',
-    direccion: '',
+  const isEditar = modo === "editar";
+
+  const [form, setForm] = useState<FormState>({
+    nombre_sede: "",
+    departamento: null,
+    provincia: null,
+    ciudad: "",
+    direccion: "",
+    representante: {
+      nombres: "",
+      apellidos: "",
+      dni: "",
+      celular: "",
+      correo: "",
+    },
   });
 
-  const [ubigeos, setUbigeos] = useState<Ubigeo[]>([]);
-  const [provincias, setProvincias] = useState<Ubigeo[]>([]);
-  const [distritos, setDistritos] = useState<Ubigeo[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [saving, setSaving] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  // Carga y transforma todos los ubigeos
   useEffect(() => {
-    fetch('https://free.e-api.net.pe/ubigeos.json')
-      .then((res) => res.json())
-      .then((data) => {
-        const result: Ubigeo[] = [];
-        Object.entries(data).forEach(([depName, provinciasObj]) => {
-          Object.entries(provinciasObj as Record<string, any>).forEach(
-            ([provName, distritosObj]) => {
-              Object.entries(distritosObj as Record<string, any>).forEach(
-                ([distName, info]) => {
-                  result.push({
-                    codigo: info.ubigeo,
-                    nombre: `${depName}/${provName}/${distName}`,
-                  });
-                }
-              );
-            }
-          );
-        });
-        setUbigeos(result);
-      })
-      .catch(console.error);
-  }, []);
-
-  // Precarga si es modo edición
-  useEffect(() => {
-    if (modo === 'editar' && almacen && ubigeos.length > 0) {
-      const match = ubigeos.find((u) => {
-        const [dep, , dist] = u.nombre.split('/');
-        return dep === almacen.departamento && dist === almacen.ciudad;
-      });
-
-      const [, provincia, distrito] = match?.nombre.split('/') ?? [];
-
-      setForm({
-        nombre_almacen: almacen.nombre_almacen || '',
-        departamento: almacen.departamento || '',
-        provincia: provincia || '',
-        distrito: match?.codigo || '',
-        direccion: almacen.direccion || '',
-      });
+    if (isEditar && almacen) {
+      setForm((prev) => ({
+        ...prev,
+        nombre_sede: almacen.nombre_almacen || "",
+        departamento: almacen.departamento ?? null,
+        provincia: (almacen as any).provincia ?? null,
+        ciudad: almacen.ciudad || "",
+        direccion: almacen.direccion || "",
+        representante: prev.representante,
+      }));
     }
-  }, [modo, almacen, ubigeos]);
+  }, [isEditar, almacen]);
 
-  // Carga provincias según departamento
-  useEffect(() => {
-    setProvincias([]);
-    setDistritos([]);
-    if (!form.departamento) return;
+  const titulo = useMemo(
+    () => (isEditar ? "Editar Sede" : "Registrar Nueva Sede"),
+    [isEditar]
+  );
 
-    const provs = ubigeos
-      .filter((u) => u.nombre.startsWith(form.departamento + '/'))
-      .reduce((acc: Record<string, Ubigeo>, item) => {
-        const [, prov] = item.nombre.split('/');
-        if (!acc[prov]) acc[prov] = item;
-        return acc;
-      }, {});
-    setProvincias(Object.values(provs));
-  }, [form.departamento, ubigeos]);
+  function set<K extends keyof FormState>(key: K, val: FormState[K]) {
+    setForm((f) => ({ ...f, [key]: val }));
+  }
 
-  // Carga distritos según provincia
-  useEffect(() => {
-    setDistritos([]);
-    if (!form.departamento || !form.provincia) return;
-
-    const dists = ubigeos.filter(
-      (u) => u.nombre.startsWith(`${form.departamento}/${form.provincia}/`)
-    );
-    setDistritos(dists);
-  }, [form.provincia, form.departamento, ubigeos]);
-
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
-  ) => {
-    const { name, value } = e.target;
-    setForm((prev) => ({
-      ...prev,
-      [name]: value,
-      ...(name === 'departamento' && { provincia: '', distrito: '' }),
-      ...(name === 'provincia' && { distrito: '' }),
+  const setRep = (k: keyof FormState["representante"], v: string | null) => {
+    setForm((f) => ({
+      ...f,
+      representante: { ...f.representante, [k]: v ?? "" },
     }));
   };
 
-  const handleSubmit = async () => {
-    setLoading(true);
-    setError('');
-    try {
-      const selected = ubigeos.find((u) => u.codigo === form.distrito);
-      const [departamento, , distrito] = selected?.nombre.split('/') ?? [];
+  const validar = (): string | null => {
+    if (!form.nombre_sede.trim()) return "El nombre de la sede es obligatorio.";
+    if (!form.ciudad.trim()) return "La ciudad es obligatoria.";
+    if (!form.direccion.trim()) return "La dirección es obligatoria.";
 
-      if (modo === 'crear') {
-        const nuevo = await createAlmacenamiento(
-          {
-            nombre_almacen: form.nombre_almacen,
-            departamento,
-            ciudad: distrito,
-            direccion: form.direccion,
-          },
-          token
-        );
-        onSuccess(nuevo);
-      } else if (modo === 'editar' && almacen) {
-        const actualizado = await updateAlmacenamiento(
+    if (!isEditar) {
+      const { nombres, apellidos, dni, correo } = form.representante;
+      if (!nombres.trim()) return "El nombre del representante es obligatorio.";
+      if (!apellidos.trim()) return "El apellido del representante es obligatorio.";
+      if (!dni.trim()) return "El DNI del representante es obligatorio.";
+      if (!correo.trim()) return "El correo del representante es obligatorio.";
+      if (!/^\S+@\S+\.\S+$/.test(correo.trim())) return "El correo no es válido.";
+    }
+    return null;
+  };
+
+  const onSubmit = async () => {
+    const err = validar();
+    if (err) {
+      setErrorMsg(err);
+      return;
+    }
+    setErrorMsg(null);
+    setSaving(true);
+
+    try {
+      if (isEditar && almacen) {
+        const updated = await updateAlmacenamiento(
           almacen.uuid,
           {
-            nombre_almacen: form.nombre_almacen,
-            departamento,
-            ciudad: distrito,
-            direccion: form.direccion,
+            nombre_almacen: form.nombre_sede.trim(),
+            departamento: form.departamento ?? null,
+            provincia: form.provincia ?? null,
+            ciudad: form.ciudad.trim(),
+            direccion: form.direccion.trim(),
           },
           token
         );
-        onSuccess(actualizado);
+        onSuccess(updated);
+        onClose();
+      } else {
+        const { sede } = await crearSedeSecundariaConInvitacion(
+          {
+            nombre_sede: form.nombre_sede.trim(),
+            departamento: form.departamento ?? null,
+            provincia: form.provincia ?? null,
+            ciudad: form.ciudad.trim(),
+            direccion: form.direccion.trim(),
+            representante: {
+              nombres: form.representante.nombres.trim(),
+              apellidos: form.representante.apellidos.trim(),
+              dni: form.representante.dni.trim(),
+              celular: form.representante.celular?.toString() || null,
+              correo: form.representante.correo.trim().toLowerCase(),
+            },
+          },
+          token
+        );
+        onSuccess(sede);
+        onClose();
       }
-
-      onClose();
-    } catch {
-      setError('Error al guardar almacén');
+    } catch (e: any) {
+      setErrorMsg(e?.message || "No se pudo guardar la sede.");
     } finally {
-      setLoading(false);
+      setSaving(false);
     }
   };
 
   return (
-    <div className="fixed inset-0 bg-black/40 z-50 flex justify-end">
-      <div className="bg-white p-6 rounded-l-md w-full max-w-md h-full overflow-auto shadow-lg">
-        <div className="flex items-center gap-2 mb-3">
-          <PiGarageLight size={20} className="text-primaryDark" />
-          <h2 className="text-lg font-bold uppercase">
-            {modo === 'editar' ? 'Editar Almacén' : 'Registrar Nuevo Almacén'}
-          </h2>
-        </div>
+    <div className="flex flex-col h-full w-[460px] overflow-x-hidden">
+      {/* contenido con scroll vertical */}
+      <div className="flex-1 overflow-y-auto p-5 flex flex-col gap-5">
+        <Tittlex
+          variant="modal"
+          icon="hugeicons:warehouse"
+          title={titulo}
+          description={`Complete la información para ${isEditar ? "actualizar" : "registrar"} la sede.`}
+        />
 
-        <p className="text-sm text-gray-600 mb-5">
-          {modo === 'editar'
-            ? 'Modifique la información del almacén seleccionado.'
-            : 'Complete la información para registrar un nuevo almacén...'}
-        </p>
+        <Inputx
+          label="Nombre de Sede"
+          placeholder="Ej.: Sede Secundaria"
+          value={form.nombre_sede}
+          onChange={(e) => set("nombre_sede", e.target.value)}
+        />
 
-        <div className="space-y-4 text-sm">
-          <div>
-            <label className="block font-medium mb-1">Nombre de Almacén</label>
-            <input
-              type="text"
-              name="nombre_almacen"
-              placeholder="Ej. Almacén Central"
-              value={form.nombre_almacen}
-              onChange={handleChange}
-              className="w-full border rounded px-3 py-2 outline-none focus:ring-2 focus:ring-[#1A253D]"
+        <div className="flex gap-5">
+          <div className="flex-1 min-w-0">
+            <Inputx
+              label="Departamento (opcional)"
+              placeholder="Seleccionar departamento"
+              value={form.departamento ?? ""}
+              onChange={(e) => set("departamento", e.target.value || null)}
             />
           </div>
 
-          <div>
-            <label className="block font-medium mb-1">Departamento</label>
-            <select
-              name="departamento"
-              value={form.departamento}
-              onChange={handleChange}
-              className="w-full border rounded px-3 py-2">
-              <option value="">Seleccionar departamento</option>
-              {[...new Set(ubigeos.map((u) => u.nombre.split('/')[0]))]
-                .sort()
-                .map((dep) => (
-                  <option key={dep} value={dep}>
-                    {dep}
-                  </option>
-                ))}
-            </select>
+          <div className="flex-1 min-w-0">
+            <Inputx
+              label="Provincia (opcional)"
+              placeholder="Seleccionar provincia"
+              value={form.provincia ?? ""}
+              onChange={(e) => set("provincia", e.target.value || null)}
+            />
+          </div>
+        </div>
+
+        <div className="flex gap-5">
+          <div className="flex-1 min-w-0">
+            <Inputx
+              label="Ciudad"
+              placeholder="Seleccionar ciudad"
+              value={form.ciudad}
+              onChange={(e) => set("ciudad", e.target.value)}
+            />
           </div>
 
-          <div>
-            <label className="block font-medium mb-1">Provincia</label>
-            <select
-              name="provincia"
-              value={form.provincia}
-              onChange={handleChange}
-              className="w-full border rounded px-3 py-2"
-              disabled={!provincias.length}>
-              <option value="">Seleccionar provincia</option>
-              {provincias.map((p) => (
-                <option key={p.nombre} value={p.nombre.split('/')[1]}>
-                  {p.nombre.split('/')[1]}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <label className="block font-medium mb-1">Ciudad</label>
-            <select
-              name="distrito"
-              value={form.distrito}
-              onChange={handleChange}
-              className="w-full border rounded px-3 py-2"
-              disabled={!distritos.length}>
-              <option value="">Seleccionar Ciudad</option>
-              {distritos.map((d) => (
-                <option key={d.codigo} value={d.codigo}>
-                  {d.nombre.split('/')[2]}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <label className="block font-medium mb-1">Dirección</label>
-            <input
-              type="text"
-              name="direccion"
-              placeholder="Ej. Av. Las Flores 123, Urb. Santa Ana"
+          <div className="flex-1 min-w-0">
+            <Inputx
+              label="Dirección"
+              placeholder="Ej.: Av. Los Próceres 1234"
               value={form.direccion}
-              onChange={handleChange}
-              className="w-full border rounded px-3 py-2"
+              onChange={(e) => set("direccion", e.target.value)}
             />
           </div>
         </div>
 
-        {error && <p className="text-red-600 text-sm mt-3">{error}</p>}
+        {!isEditar && (
+          <div className="flex flex-col gap-5">
+            <div className="text-md font-semibold text-gray-800">
+              Datos del representante
+            </div>
 
-        <div className="flex justify-end gap-2 mt-6">
-          <button
+            <div className="flex gap-5">
+              <div className="flex-1 min-w-0">
+                <Inputx
+                  label="Nombres"
+                  placeholder="Nombres"
+                  value={form.representante.nombres}
+                  onChange={(e) => setRep("nombres", e.target.value)}
+                />
+              </div>
+
+              <div className="flex-1 min-w-0">
+                <Inputx
+                  label="Apellidos"
+                  placeholder="Apellidos"
+                  value={form.representante.apellidos}
+                  onChange={(e) => setRep("apellidos", e.target.value)}
+                />
+              </div>
+            </div>
+
+            <div className="flex gap-5">
+              <div className="flex-1 min-w-0">
+                <Inputx
+                  label="DNI"
+                  placeholder="DNI"
+                  value={form.representante.dni}
+                  onChange={(e) => setRep("dni", e.target.value)}
+                />
+              </div>
+
+              <div className="flex-1 min-w-0">
+                <InputxPhone
+                  label="Celular (opcional)"
+                  placeholder="Celular"
+                  countryCode="+51"
+                  value={form.representante.celular ?? ""}
+                  onChange={(e) => setRep("celular", e.target.value)}
+                />
+              </div>
+            </div>
+
+            <Inputx
+              label="Correo"
+              placeholder="correo@dominio.com"
+              type="email"
+              value={form.representante.correo}
+              onChange={(e) => setRep("correo", e.target.value)}
+            />
+
+            <p className="text-[12px] text-gray-500">
+              Se enviará una invitación al correo del representante para que cree su contraseña y active su cuenta.
+            </p>
+          </div>
+        )}
+
+        {errorMsg && (
+          <div className="text-red-600 bg-red-50 border border-red-200 rounded text-sm p-3">
+            {errorMsg}
+          </div>
+        )}
+      </div>
+
+      {/* Footer fijo */}
+      <div className="p-5 pt-3 border-t border-gray-200 bg-white">
+        <div className="flex items-center gap-5">
+          <Buttonx
+            variant="quartery"
+            onClick={onSubmit}
+            disabled={saving}
+            label={
+              saving
+                ? isEditar
+                  ? "Guardando…"
+                  : "Creando…"
+                : isEditar
+                ? "Guardar cambios"
+                : "Crear nuevo"
+            }
+          />
+          <Buttonx
+            variant="outlinedw"
+            disabled={saving}
             onClick={onClose}
-            className="px-4 py-2 text-sm border rounded hover:bg-gray-100">
-            Cancelar
-          </button>
-          <button
-            onClick={handleSubmit}
-            disabled={loading}
-            className="bg-[#1A253D] text-white px-4 py-2 rounded flex items-center gap-2">
-            {loading && <FaSpinner className="animate-spin" />}
-            {modo === 'editar' ? 'Guardar Cambios' : 'Crear nuevo'}
-          </button>
+            label="Cancelar"
+          />
         </div>
       </div>
     </div>

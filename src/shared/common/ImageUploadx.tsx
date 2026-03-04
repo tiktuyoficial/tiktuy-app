@@ -1,0 +1,508 @@
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Icon } from "@iconify/react";
+
+type Size = "sm" | "md";
+type Mode = "create" | "edit" | "view";
+
+export interface ImageUploadxProps {
+  label?: string;
+  value?: File | string | null;
+  maxSizeMB?: number;
+  accept?: string;
+  disabled?: boolean;
+  helperText?: string;
+  size?: Size;
+  className?: string;
+  mode?: Mode;
+  readOnly?: boolean;
+  uploading?: boolean;
+  progress?: number;
+  uploadProgress?: number;
+  uploadText?: string;
+  minUploadMs?: number;
+  confirmOnDelete?: boolean;
+  confirmMessage?: string;
+  confirmYesLabel?: string;
+  confirmNoLabel?: string;
+  onChange?: (file: File | null) => void;
+  onView?: (url: string) => void;
+  onDownload?: (url: string) => void;
+  onDelete?: () => void;
+  thumbClassName?: string;
+  variant?: "standard" | "hero";
+}
+
+// --- FUNCIONES AUXILIARES CONSERVADAS ---
+
+const formatBytes = (bytes: number) => {
+  if (!Number.isFinite(bytes)) return "";
+  const units = ["B", "KB", "MB", "GB"];
+  let i = 0;
+  let n = bytes;
+  while (n >= 1024 && i < units.length - 1) { n /= 1024; i++; }
+  return `${n.toFixed(n >= 10 || i === 0 ? 0 : 1)} ${units[i]}`;
+};
+
+const forceDownload = (href: string, filename: string) => {
+  const a = document.createElement("a");
+  a.href = href;
+  a.download = filename || "imagen";
+  a.rel = "noopener";
+  a.style.display = "none";
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+};
+
+const inferNameFromUrl = (u: string, fallback = "imagen") => {
+  try {
+    const url = new URL(u);
+    const last = url.pathname.split("/").pop() || "";
+    const clean = last.split("?")[0] || "";
+    return clean || fallback;
+  } catch {
+    const parts = u.split("/").pop() || "";
+    return parts.split("?")[0] || fallback;
+  }
+};
+
+const cloudinaryAttachmentUrl = (u: string, filename?: string) => {
+  try {
+    const url = new URL(u);
+    if (!url.hostname.includes("res.cloudinary.com")) return null;
+    const path = url.pathname;
+    const marker = "/upload/";
+    const i = path.indexOf(marker);
+    if (i === -1) return null;
+    const before = path.slice(0, i + marker.length);
+    const after = path.slice(i + marker.length);
+    if (after.startsWith("fl_attachment") || after.includes("fl_attachment,")) return url.toString();
+    const safeName = (filename || inferNameFromUrl(u)).replace(/[^\w.\-]+/g, "_");
+    url.pathname = `${before}fl_attachment:${safeName}/${after}`;
+    return url.toString();
+  } catch { return null; }
+};
+
+const ImageUploadx: React.FC<ImageUploadxProps> = ({
+  label = "Imagen",
+  value = null,
+  maxSizeMB = 5,
+  accept = "image/*",
+  disabled = false,
+  helperText,
+  size = "md",
+  className = "",
+  mode = "create",
+  readOnly = false,
+  uploading = false,
+  progress,
+  uploadProgress,
+  uploadText = "Subiendo imagen…",
+  minUploadMs = 2000,
+  confirmOnDelete = true,
+  confirmMessage = "¿Seguro que quieres eliminar esta imagen?",
+  confirmYesLabel = "Sí",
+  confirmNoLabel = "Cancelar",
+  onChange,
+  onView,
+  onDownload,
+  onDelete,
+  thumbClassName,
+  variant = "standard",
+}) => {
+  const effectiveMode: Mode = readOnly ? "view" : mode;
+  const canPick = effectiveMode !== "view" && !disabled;
+  const showChangeDelete = effectiveMode !== "view";
+  const showEmptyCTA = effectiveMode !== "view";
+
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  // Estados
+  const [file, setFile] = useState<File | null>(null);
+  const [externalUrl, setExternalUrl] = useState<string | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+
+  const [dragActive, setDragActive] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [processing, setProcessing] = useState(false);
+
+  // --- Sincronización de props (value) ---
+  useEffect(() => {
+    if (!value) {
+      setFile(null);
+      setExternalUrl(null);
+      return;
+    }
+    if (value instanceof File) {
+      setFile(value);
+      setExternalUrl(null);
+    } else if (typeof value === "string") {
+      setFile(null);
+      setExternalUrl(value);
+    }
+  }, [value]);
+
+  // --- 2. EL CAMBIO CLAVE: BASE64 (A prueba de fallos) ---
+  useEffect(() => {
+    let isMounted = true;
+
+    if (file) {
+      // Usamos FileReader (Base64) en lugar de Blob.
+      // Esto evita que el navegador "pierda" la referencia a la imagen.
+      const reader = new FileReader();
+
+      reader.onloadend = () => {
+        if (isMounted && typeof reader.result === "string") {
+          setPreviewUrl(reader.result);
+        }
+      };
+
+      // Leemos el archivo
+      reader.readAsDataURL(file);
+
+    } else if (externalUrl) {
+      setPreviewUrl(externalUrl);
+    } else {
+      setPreviewUrl(null);
+    }
+
+    return () => {
+      isMounted = false;
+    };
+  }, [file, externalUrl]);
+
+  // --- Overlay de carga ---
+  const startedAtRef = useRef<number | null>(null);
+  const hideTRef = useRef<number | null>(null);
+  const [busyVisible, setBusyVisible] = useState(false);
+  const incomingProgress = typeof progress === "number" ? progress : uploadProgress;
+  const safeProgress = typeof incomingProgress === "number" ? Math.max(0, Math.min(100, incomingProgress)) : undefined;
+  const wantBusy = (effectiveMode !== "view") && (processing || uploading);
+
+  useEffect(() => {
+    if (wantBusy) {
+      if (!busyVisible) setBusyVisible(true);
+      if (startedAtRef.current == null) startedAtRef.current = Date.now();
+      if (hideTRef.current) { clearTimeout(hideTRef.current); hideTRef.current = null; }
+      return;
+    }
+    const started = startedAtRef.current;
+    const elapsed = started ? Date.now() - started : minUploadMs;
+    const remaining = Math.max(0, minUploadMs - elapsed);
+    if (remaining === 0) {
+      setBusyVisible(false);
+      startedAtRef.current = null;
+    } else {
+      hideTRef.current = window.setTimeout(() => {
+        setBusyVisible(false);
+        startedAtRef.current = null;
+        hideTRef.current = null;
+      }, remaining);
+    }
+  }, [wantBusy, minUploadMs, busyVisible]);
+
+  useEffect(() => () => { if (hideTRef.current) clearTimeout(hideTRef.current); }, []);
+
+  // --- Modal Confirmación ---
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const confirmRef = useRef<HTMLDivElement | null>(null);
+  const anchorRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (!confirmOpen) return;
+    const onDown = (e: MouseEvent) => {
+      const t = e.target as Node;
+      if (!confirmRef.current?.contains(t) && !anchorRef.current?.contains(t)) setConfirmOpen(false);
+    };
+    const onEsc = (e: KeyboardEvent) => { if (e.key === "Escape") setConfirmOpen(false); };
+    document.addEventListener("mousedown", onDown);
+    document.addEventListener("keydown", onEsc);
+    return () => {
+      document.removeEventListener("mousedown", onDown);
+      document.removeEventListener("keydown", onEsc);
+    };
+  }, [confirmOpen]);
+
+  const doDelete = () => {
+    setFile(null);
+    setExternalUrl(null);
+    onDelete?.();
+    onChange?.(null);
+  };
+
+  const validateAndSet = useCallback(
+    async (f: File | null) => {
+      if (!f) return;
+      setError(null);
+      if (!f.type.startsWith("image/")) { setError("El archivo debe ser una imagen."); return; }
+      if (f.size > maxSizeMB * 1024 * 1024) { setError(`La imagen supera ${maxSizeMB} MB.`); return; }
+
+      try {
+        setProcessing(true);
+        setFile(f);
+        onChange?.(f);
+      } finally {
+        setProcessing(false);
+      }
+    },
+    [maxSizeMB, onChange]
+  );
+
+  const handlePick = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const f = e.target.files?.[0] ?? null;
+    void validateAndSet(f);
+    e.target.value = "";
+  }, [validateAndSet]);
+
+  const handleDrop = useCallback((e: React.DragEvent) => {
+    if (!canPick) return;
+    e.preventDefault(); e.stopPropagation();
+    setDragActive(false);
+    const f = e.dataTransfer.files?.[0] ?? null;
+    void validateAndSet(f);
+  }, [canPick, validateAndSet]);
+
+  const handlePaste = useCallback((e: React.ClipboardEvent) => {
+    if (!canPick) return;
+    const item = Array.from(e.clipboardData.items).find((i) => i.type.startsWith("image/"));
+    if (item) { const f = item.getAsFile(); if (f) void validateAndSet(f); }
+  }, [canPick, validateAndSet]);
+
+  const openPicker = () => { if (!canPick) return; inputRef.current?.click(); };
+
+  const handleView = (e?: React.MouseEvent) => {
+    e?.stopPropagation();
+    if (!previewUrl) return;
+    if (onView) return onView(previewUrl);
+    window.open(previewUrl, "_blank", "noopener,noreferrer");
+  };
+
+  const handleDownload = async (e?: React.MouseEvent) => {
+    e?.preventDefault(); e?.stopPropagation();
+    if (!previewUrl) return;
+    if (onDownload) { onDownload(previewUrl); return; }
+
+    try {
+      if (file instanceof File) {
+        // Para descarga local, usamos blob fresco para evitar errores de red
+        const url = URL.createObjectURL(file);
+        forceDownload(url, file.name || "imagen");
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+        return;
+      }
+
+      const resp = await fetch(previewUrl, { mode: "cors" });
+      const blob = await resp.blob();
+      const url = URL.createObjectURL(blob);
+      const name = inferNameFromUrl(previewUrl, "imagen");
+      forceDownload(url, name);
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    } catch {
+      const name = inferNameFromUrl(previewUrl, "imagen");
+      const cld = cloudinaryAttachmentUrl(previewUrl, name);
+      if (cld) { window.open(cld, "_blank", "noopener,noreferrer"); return; }
+      window.open(previewUrl, "_blank", "noopener,noreferrer");
+    }
+  };
+
+  const handleDelete = (e?: React.MouseEvent) => {
+    e?.stopPropagation();
+    if (!showChangeDelete) return;
+    if (confirmOnDelete) setConfirmOpen(true);
+    else doDelete();
+  };
+
+  const fileName = useMemo(() => file?.name ?? externalUrl?.split("/").pop() ?? "", [file, externalUrl]);
+  const fileSize = useMemo(() => (file ? formatBytes(file.size) : ""), [file]);
+  const thumbClasses = thumbClassName || (size === "sm" ? "w-12 h-12" : "w-[72px] h-[72px]");
+  const iconBtnClasses = size === "sm" ? "w-8 h-8" : "w-9 h-9";
+  const hasImage = Boolean(previewUrl);
+  const isBusy = busyVisible;
+
+  // --- RENDER HERO ---
+  if (variant === "hero") {
+    return (
+      <div className={`w-full h-full ${className}`} onPaste={handlePaste} aria-readonly={effectiveMode === "view"} aria-busy={isBusy}>
+        {label && <label className="block text-base font-normal text-gray90 text-left mb-2">{label}</label>}
+
+        <div
+          onDragOver={(e) => { if (!canPick) return; e.preventDefault(); setDragActive(true); }}
+          onDragLeave={() => canPick && setDragActive(false)}
+          onDrop={handleDrop}
+          className={[
+            "relative w-full h-full min-h-[200px] rounded-lg border overflow-hidden flex flex-col items-center justify-center transition-colors bg-gray-50",
+            canPick ? (dragActive ? "border-gray-500 bg-gray-100" : "border-gray-300 hover:border-gray-400") : "border-gray-200",
+            disabled && effectiveMode !== "view" ? "opacity-60 pointer-events-none" : ""
+          ].join(" ")}
+        >
+          {/* Placeholder */}
+          {!hasImage && (
+            <div className="flex flex-col items-center justify-center text-center p-4">
+              <Icon icon="mdi:image-off-outline" className="text-gray-400 text-4xl mb-2" />
+              <div className="text-sm text-gray-500 font-medium">
+                {showEmptyCTA ? "Arrastra o selecciona una imagen" : "Sin imagen disponible"}
+              </div>
+              {showEmptyCTA && (
+                <div className="mt-3">
+                  <button type="button" onClick={openPicker} className="px-4 py-2 bg-white border border-gray-300 rounded text-sm text-gray-700 hover:bg-gray-50 font-medium shadow-sm">
+                    Seleccionar
+                  </button>
+                  <input ref={inputRef} type="file" accept={accept} className="hidden" onChange={handlePick} disabled={disabled} />
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Image */}
+          {hasImage && (
+            <>
+              <img src={previewUrl!} alt="Vista previa" className="w-full h-full object-contain" draggable={false} />
+
+              {/* Controls Overlay */}
+              <div className="absolute inset-0 bg-black/5 opacity-0 hover:opacity-100 transition-opacity flex items-end justify-end p-2 gap-2">
+                <button type="button" onClick={(e) => handleDownload(e)} title="Descargar" className="w-9 h-9 rounded bg-white/90 text-gray-800 flex items-center justify-center shadow hover:bg-white hover:text-blue-600 transition-colors">
+                  <Icon icon="tabler:download" className="text-lg" />
+                </button>
+                <button type="button" onClick={handleView} title="Ver" className="w-9 h-9 rounded bg-white/90 text-gray-800 flex items-center justify-center shadow hover:bg-white hover:text-blue-600 transition-colors">
+                  <Icon icon="tabler:eye" className="text-lg" />
+                </button>
+                {showChangeDelete && (
+                  <>
+                    <button type="button" onClick={openPicker} className="w-9 h-9 rounded bg-white/90 text-gray-800 flex items-center justify-center shadow hover:bg-white hover:text-blue-600 transition-colors">
+                      <Icon icon="tabler:photo-edit" className="text-lg" />
+                    </button>
+                    <button type="button" onClick={(e) => { e.stopPropagation(); handleDelete(e); }} className="w-9 h-9 rounded bg-white/90 text-red-600 flex items-center justify-center shadow hover:bg-red-50 transition-colors">
+                      <Icon icon="tabler:trash" className="text-lg" />
+                    </button>
+                  </>
+                )}
+              </div>
+
+              {/* Confirm Delete inside Hero?? Maybe simplified */}
+              {confirmOpen && (
+                <div ref={confirmRef} className="absolute bottom-12 right-2 z-50 w-[240px] rounded-lg border border-gray-200 bg-white shadow-xl p-3 text-left">
+                  <p className="text-xs text-gray-800 mb-2">{confirmMessage}</p>
+                  <div className="flex justify-end gap-2">
+                    <button type="button" onClick={() => setConfirmOpen(false)} className="text-xs px-2 py-1 border rounded">No</button>
+                    <button type="button" onClick={() => { setConfirmOpen(false); doDelete(); }} className="text-xs px-2 py-1 bg-red-600 text-white rounded">Sí</button>
+                  </div>
+                </div>
+              )}
+            </>
+          )}
+
+          {/* Loading Overlay */}
+          {isBusy && (
+            <div className="absolute inset-0 bg-white/80 backdrop-blur-[1px] flex flex-col items-center justify-center z-20">
+              <Icon icon="line-md:loading-twotone-loop" className="text-3xl text-gray-500 animate-spin mb-2" />
+              <span className="text-sm font-medium text-gray-700">{uploadText}</span>
+            </div>
+          )}
+        </div>
+        {error && <p className="mt-1 text-sm text-red-600">{error}</p>}
+      </div>
+    );
+  }
+
+  // --- RENDER STANDARD ---
+  return (
+    <div className={`w-full ${className}`} onPaste={handlePaste} aria-readonly={effectiveMode === "view"} aria-busy={isBusy}>
+      {label && <label className="block text-base font-normal text-gray90 text-left mb-2">{label}</label>}
+
+      <div
+        onDragOver={(e) => { if (!canPick) return; e.preventDefault(); setDragActive(true); }}
+        onDragLeave={() => canPick && setDragActive(false)}
+        onDrop={handleDrop}
+        className={[
+          "relative rounded-md border transition-colors bg-white p-3",
+          canPick ? (dragActive ? "border-gray-500 bg-gray-50" : "border-gray-300 hover:border-gray-400") : "border-gray-300",
+          disabled && effectiveMode !== "view" ? "opacity-60 pointer-events-none" : "",
+        ].join(" ")}
+      >
+        {!hasImage && (
+          <div className="flex items-center gap-3 select-none">
+            <div className={`${thumbClasses} rounded-md border border-gray-200 bg-gray-50 flex items-center justify-center`}>
+              <Icon icon="mdi:image-off-outline" className="text-gray-400 text-xl" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="text-sm text-gray90 font-roboto">
+                {showEmptyCTA ? (
+                  <>Arrastra una imagen o <button type="button" onClick={openPicker} className="text-blue-700 hover:underline focus:outline-none">selecciónala</button></>
+                ) : ("Sin imagen")}
+              </div>
+              {showEmptyCTA && <div className="text-xs text-gray-500">{helperText ?? `PNG/JPG hasta ${maxSizeMB} MB.`}</div>}
+            </div>
+            {showEmptyCTA && (
+              <>
+                <button type="button" onClick={openPicker} className={`${iconBtnClasses} rounded-md border border-gray-300 bg-white text-gray90 inline-flex items-center justify-center hover:bg-gray-50`}>
+                  {(processing || uploading) ? <Icon icon="line-md:loading-twotone-loop" className="text-lg animate-spin" /> : <Icon icon="tabler:upload" className="text-lg" />}
+                </button>
+                <input ref={inputRef} type="file" accept={accept} className="hidden" onChange={handlePick} disabled={disabled} />
+              </>
+            )}
+          </div>
+        )}
+
+        {hasImage && (
+          <div className="flex items-center gap-3 select-none">
+            <div className={`${thumbClasses} overflow-hidden rounded-md border border-gray-200 bg-gray-50 shrink-0`}>
+              {/* Aquí se mostrará la imagen en Base64 que es imposible que falle */}
+              <img src={previewUrl!} alt="Vista previa" className="w-full h-full object-cover" draggable={false} />
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="text-sm font-roboto text-gray90 truncate" title={fileName}>{fileName || "imagen"}</div>
+              {fileSize && <div className="text-xs text-gray-500">{fileSize}</div>}
+            </div>
+            <div className={`flex items-center gap-2 ${isBusy ? "pointer-events-none opacity-70" : ""}`}>
+              <button type="button" onClick={(e) => handleDownload(e)} className={`${iconBtnClasses} rounded-md bg-gray-900 text-white inline-flex items-center justify-center hover:bg-gray-800`}>
+                <Icon icon="tabler:download" className="text-lg" />
+              </button>
+
+              <button type="button" onClick={handleView} className={`${iconBtnClasses} rounded-md bg-gray-900 text-white inline-flex items-center justify-center hover:bg-gray-800`}>
+                <Icon icon="tabler:eye" className="text-lg" />
+              </button>
+
+              {showChangeDelete && (
+                <>
+                  <button type="button" onClick={openPicker} className={`${iconBtnClasses} rounded-md border border-gray-300 bg-white text-gray90 inline-flex items-center justify-center hover:bg-gray-50`}>
+                    <Icon icon="tabler:photo-edit" className="text-lg" />
+                  </button>
+                  <div ref={anchorRef} className="relative">
+                    <button type="button" onClick={(e) => { e.stopPropagation(); handleDelete(e); }} className={`${iconBtnClasses} rounded-md bg-gray-900 text-white inline-flex items-center justify-center hover:bg-gray-800`}>
+                      <Icon icon="tabler:trash" className="text-lg" />
+                    </button>
+                    {confirmOpen && (
+                      <div ref={confirmRef} className="absolute top-full right-0 mt-2 z-50 w-[260px] rounded-lg border border-gray-200 bg-white shadow-xl p-3">
+                        <div className="flex items-start gap-2">
+                          <Icon icon="tabler:alert-circle" className="text-gray-700 mt-0.5" />
+                          <p className="text-sm text-gray-800">{confirmMessage}</p>
+                        </div>
+                        <div className="mt-3 flex items-center justify-end gap-2">
+                          <button type="button" onClick={() => setConfirmOpen(false)} className="px-3 py-1.5 rounded-md border border-gray-300 text-gray-700 text-sm hover:bg-gray-50">{confirmNoLabel}</button>
+                          <button type="button" onClick={() => { setConfirmOpen(false); doDelete(); }} className="px-3 py-1.5 rounded-md bg-gray-900 text-white text-sm hover:bg-gray-800">{confirmYesLabel}</button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                  <input ref={inputRef} type="file" accept={accept} className="hidden" onChange={handlePick} disabled={disabled} />
+                </>
+              )}
+            </div>
+          </div>
+        )}
+
+        {isBusy && (
+          <div className="absolute inset-0 z-40 bg-white/70 backdrop-blur-[2px] flex flex-col items-center justify-center gap-2 rounded-md">
+            <div className="flex items-center gap-2 text-gray-800"><Icon icon="tabler:cloud-upload" className="text-xl" /><span className="text-sm font-medium">{uploadText}</span></div>
+            <div className="w-[220px] h-1 rounded bg-gray-200 overflow-hidden mt-2">
+              {typeof safeProgress === "number" ? <div className="h-full bg-gray-900 transition-all" style={{ width: `${safeProgress}%` }} /> : <div className="h-full bg-gray-900 w-2/3 animate-pulse rounded" />}
+            </div>
+          </div>
+        )}
+      </div>
+      {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
+    </div>
+  );
+};
+
+export default ImageUploadx;

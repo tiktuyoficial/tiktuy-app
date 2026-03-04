@@ -14,22 +14,59 @@ export type Perfil = {
 export type PerfilTrabajador = {
   id: number;
   codigo_trabajador?: string;
+  fecha_creacion?: Date;
   modulo_asignado: ModuloAsignado;
   rol_perfil_id: number;
   perfil?: Perfil;
 };
 
-export type User = {
+export interface User {
   uuid: string;
   nombres: string;
   apellidos: string;
   correo: string;
-  DNI_CI: string;
-  telefono?: string;
-  estado: string;
-  rol?: Rol;
-  trabajador?: PerfilTrabajador;
-};
+  rol?: {
+    id: number;
+    nombre: string;
+    descripcion?: string; 
+  };
+  ecommerce_nombre: string;
+  courier_nombre: string;
+  motorizado_courier_nombre: string;
+  /** Relación directa si el usuario es tipo ecommerce */
+  ecommerce?: {
+    id: number;
+    nombre_comercial?: string;
+  } | null;
+
+  /** Relación directa si el usuario es tipo courier */
+  courier?: {
+    id: number;
+    nombre_comercial?: string;
+  } | null;
+
+  perfil_trabajador?: {
+    id: number;
+    usuario_id: number;
+    ecommerce_id: number | null;
+    courier_id: number | null;
+    rol_perfil_id: number;
+    estado_id: number;
+    codigo_trabajador: string | null;
+    modulo_asignado: string;
+    fecha_creacion: string;
+    perfil: {
+      id: number;
+      uuid: string;
+      nombre: string;
+      descripcion: string | null;
+      tipo: string;
+      estado_id: number;
+      created_at: string;
+      updated_at: string;
+    };
+  };
+}
 
 // Login
 export type LoginCredentials = {

@@ -1,434 +1,487 @@
-import { useContext, useEffect, useRef, useState } from 'react';
+// src/shared/components/ecommerce/pedidos/CrearPedidoModal.tsx
+import { useEffect, useMemo, useState } from "react";
+import { Icon } from "@iconify/react";
+
 import {
   crearPedido,
-  fetchPedidoById,
-} from '@/services/ecommerce/pedidos/pedidos.api';
-import { AuthContext } from '@/auth/context/AuthContext';
-import { FiX } from 'react-icons/fi';
-import { BsBoxSeam } from 'react-icons/bs';
-import { fetchProductos } from '@/services/ecommerce/producto/producto.api';
-import { fetchCouriersAsociados } from '@/services/ecommerce/ecommerceCourier.api';
-import type { Producto } from '@/services/ecommerce/producto/producto.types';
-import { fetchZonasByCourierPublic } from '@/services/courier/zonaTarifaria.api';
-import type { CourierAsociado } from '@/services/ecommerce/ecommerceCourier.types';
+  fetchProductosPorSede,
+  fetchZonasTarifariasPorSede,
+} from "@/services/ecommerce/pedidos/pedidos.api";
 
-interface CrearPedidoModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  onPedidoCreado: () => void;
-  pedidoId?: number;
-  modo?: 'crear' | 'editar' | 'ver';
-}
+import { useAuth } from "@/auth/context/AuthContext";
+import { fetchSedesEcommerceCourierAsociados } from "@/services/ecommerce/ecommerceCourier.api";
+
+import { Selectx } from "@/shared/common/Selectx";
+import { Inputx, InputxPhone, InputxNumber } from "@/shared/common/Inputx";
+import Tittlex from "@/shared/common/Tittlex";
+import Buttonx from "@/shared/common/Buttonx";
+
+import type {
+  ZonaTarifariaSede,
+  CrearPedidoDTO,
+} from "@/services/ecommerce/pedidos/pedidos.types";
+
+/* ===================== TIPOS ===================== */
+type ProductoUI = {
+  id: number;
+  nombre_producto: string;
+  precio: number;
+  stock: number;
+};
+
+type DetalleUI = {
+  producto_id: number;
+  nombre: string;
+  cantidad: number;
+  precio_unitario: number;
+};
 
 export default function CrearPedidoModal({
   isOpen,
   onClose,
   onPedidoCreado,
-  pedidoId,
-  modo = 'crear',
-}: CrearPedidoModalProps) {
-  const { token, user } = useContext(AuthContext);
-  const modalRef = useRef<HTMLDivElement>(null);
-  const [productos, setProductos] = useState<Producto[]>([]);
-  const [couriers, setCouriers] = useState<CourierAsociado[]>([]);
-  const [zonas, setZonas] = useState<{ distrito: string }[]>([]);
-  const [stockDisponible, setStockDisponible] = useState<number | null>(null);
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+  onPedidoCreado: () => void;
+}) {
+  const { token } = useAuth();
+
+  const [sedes, setSedes] = useState<any[]>([]);
+  const [productos, setProductos] = useState<ProductoUI[]>([]);
+  const [zonas, setZonas] = useState<ZonaTarifariaSede[]>([]);
+  const [distritos, setDistritos] = useState<string[]>([]);
+
+  const [distritoSeleccionado, setDistritoSeleccionado] = useState("");
+  const [zonaSeleccionada, setZonaSeleccionada] = useState("");
+
+  const [detalles, setDetalles] = useState<DetalleUI[]>([]);
+  const [submitting, setSubmitting] = useState(false);
 
   const [form, setForm] = useState({
-    courier_id: '',
-    nombre_cliente: '',
-    numero_cliente: '',
-    celular_cliente: '',
-    direccion_envio: '',
-    referencia_direccion: '',
-    distrito: '',
-    monto_recaudar: '',
-    fecha_entrega_programada: '',
-    producto_id: '',
-    cantidad: '',
-    precio_unitario: '',
+    sede_id: "",
+    nombre_cliente: "",
+    numero_cliente: "",
+    celular_cliente: "",
+    direccion_envio: "",
+    referencia_direccion: "",
+    producto_id: "",
+    cantidad: "",
+    precio_unitario: "",
+    stock_max: "",
+    fecha_entrega_programada: "",
   });
 
-  const isReadOnly = modo === 'ver';
+  const montoCalculado = useMemo(
+    () => detalles.reduce((s, d) => s + d.cantidad * d.precio_unitario, 0),
+    [detalles]
+  );
 
-  const handleClickOutside = (e: MouseEvent) => {
-    if (modalRef.current && !modalRef.current.contains(e.target as Node)) {
-      onClose();
-    }
-  };
+  const [montoPersonalizado, setMontoPersonalizado] = useState("");
 
   useEffect(() => {
+    setMontoPersonalizado(montoCalculado.toFixed(2));
+  }, [montoCalculado]);
+
+  const canSubmit = useMemo(() => {
+    if (!form.sede_id) return false;
+    if (!distritoSeleccionado || !zonaSeleccionada) return false;
+    if (!form.nombre_cliente.trim()) return false;
+    if (!form.celular_cliente.trim()) return false;
+    if (!form.direccion_envio.trim()) return false;
+    if (!form.fecha_entrega_programada) return false;
+    if (!detalles.length) return false;
+    return true;
+  }, [
+    form.sede_id,
+    form.nombre_cliente,
+    form.celular_cliente,
+    form.direccion_envio,
+    form.fecha_entrega_programada,
+    distritoSeleccionado,
+    zonaSeleccionada,
+    detalles.length,
+  ]);
+
+  const resetAll = () => {
+    setForm({
+      sede_id: "",
+      nombre_cliente: "",
+      numero_cliente: "",
+      celular_cliente: "",
+      direccion_envio: "",
+      referencia_direccion: "",
+      producto_id: "",
+      cantidad: "",
+      precio_unitario: "",
+      stock_max: "",
+      fecha_entrega_programada: "",
+    });
+    setProductos([]);
+    setZonas([]);
+    setDistritos([]);
+    setDistritoSeleccionado("");
+    setZonaSeleccionada("");
+    setDetalles([]);
+    setMontoPersonalizado("");
+  };
+
+  const handleClose = () => {
+    resetAll();
+    onClose();
+  };
+
+  /* ===================== CARGAS ===================== */
+  useEffect(() => {
     if (!isOpen || !token) return;
-
-    fetchProductos(token).then(setProductos).catch(console.error);
-
-    fetchCouriersAsociados(token).then(setCouriers).catch(console.error);
+    fetchSedesEcommerceCourierAsociados(token).then(setSedes).catch(console.error);
   }, [isOpen, token]);
 
   useEffect(() => {
-    if (isOpen) document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [isOpen]);
+    if (!form.sede_id || !token) return;
+
+    fetchProductosPorSede(Number(form.sede_id), token)
+      .then(setProductos)
+      .catch(console.error);
+
+    fetchZonasTarifariasPorSede(Number(form.sede_id))
+      .then((data) => {
+        setZonas(data);
+        setDistritos([...new Set(data.map((z) => z.distrito))]);
+        setDistritoSeleccionado("");
+        setZonaSeleccionada("");
+      })
+      .catch(console.error);
+  }, [form.sede_id, token]);
 
   useEffect(() => {
-    if (form.courier_id && token) {
-      fetchZonasByCourierPublic(Number(form.courier_id), token)
-        .then(setZonas)
-        .catch((err) => {
-          console.error('Error al obtener zonas:', err);
-          setZonas([]);
-        });
-    } else {
-      setZonas([]);
-    }
-  }, [form.courier_id, token]);
+    const prod = productos.find((p) => p.id === Number(form.producto_id));
+    if (!prod) return;
 
-  useEffect(() => {
-    const loadPedido = async () => {
-      if (pedidoId && token) {
-        try {
-          const data = await fetchPedidoById(pedidoId, token);
-          const detalle = data.detalles?.[0] || {};
-          setForm({
-            courier_id: String(data.courier_id || ''),
-            nombre_cliente: data.nombre_cliente || '',
-            numero_cliente: data.numero_cliente || '',
-            celular_cliente: data.celular_cliente || '',
-            direccion_envio: data.direccion_envio || '',
-            referencia_direccion: data.referencia_direccion || '',
-            distrito: data.distrito || '',
-            monto_recaudar: String(data.monto_recaudar || ''),
-            fecha_entrega_programada:
-              data.fecha_entrega_programada?.slice(0, 10) || '',
-            producto_id: String(detalle.producto_id || ''),
-            cantidad: String(detalle.cantidad || ''),
-            precio_unitario: String(detalle.precio_unitario || ''),
-          });
-        } catch (err) {
-          console.error('Error cargando pedido:', err);
-        }
-      }
-    };
-    if (modo !== 'crear') loadPedido();
-  }, [pedidoId, token, modo]);
-
-  useEffect(() => {
-    const selected = productos.find((p) => p.id === Number(form.producto_id));
-    if (selected) {
-      setForm((prev) => ({
-        ...prev,
-        precio_unitario: String(selected.precio),
-      }));
-      setStockDisponible(selected.stock);
-    } else {
-      setStockDisponible(null);
-    }
+    setForm((p) => ({
+      ...p,
+      precio_unitario: String(prod.precio),
+      stock_max: String(prod.stock),
+    }));
   }, [form.producto_id, productos]);
 
+  // Reset cuando se abre
   useEffect(() => {
-    const cantidad = Number(form.cantidad);
-    const precio = Number(form.precio_unitario);
-    if (!isNaN(cantidad) && !isNaN(precio)) {
-      const total = cantidad * precio;
-      setForm((prev) => ({ ...prev, monto_recaudar: String(total) }));
-    }
-  }, [form.cantidad, form.precio_unitario]);
+    if (!isOpen) return;
+    resetAll();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen]);
 
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
-  ) => {
-    const { name, value } = e.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
+  const handleChange = (e: any) =>
+    setForm((p) => ({ ...p, [e.target.name]: e.target.value }));
+
+  /* ===================== AGREGAR PRODUCTO ===================== */
+  const handleAgregarProducto = () => {
+    if (!form.producto_id || !form.cantidad) return;
+
+    const prod = productos.find((p) => p.id === Number(form.producto_id));
+    if (!prod) return;
+
+    const cantidad = Math.trunc(Number(form.cantidad));
+    if (!Number.isFinite(cantidad) || cantidad <= 0) return;
+
+    const yaAgregado =
+      detalles.find((d) => d.producto_id === prod.id)?.cantidad ?? 0;
+
+    const stockDisponible = prod.stock - yaAgregado;
+    if (cantidad > stockDisponible) return;
+
+    setDetalles((prev) => {
+      const idx = prev.findIndex((d) => d.producto_id === prod.id);
+
+      if (idx === -1) {
+        return [
+          ...prev,
+          {
+            producto_id: prod.id,
+            nombre: prod.nombre_producto,
+            cantidad,
+            precio_unitario: Number(form.precio_unitario) || prod.precio,
+          },
+        ];
+      }
+
+      const next = [...prev];
+      next[idx] = {
+        ...next[idx],
+        cantidad: next[idx].cantidad + cantidad,
+      };
+
+      return next;
+    });
+
+    setForm((p) => ({
+      ...p,
+      producto_id: "",
+      cantidad: "",
+      precio_unitario: "",
+      stock_max: "",
+    }));
   };
 
-  const handleSubmit = async () => {
-    if (!token || !user) return;
+  const handleRemoveDetalle = (productoId: number) => {
+    setDetalles((prev) => prev.filter((d) => d.producto_id !== productoId));
+  };
 
-    const payload = {
+  /* ===================== SUBMIT ===================== */
+  const handleSubmit = async () => {
+    if (!token || submitting) return;
+    if (!canSubmit) return;
+
+    const payload: CrearPedidoDTO = {
       codigo_pedido: `PED-${Date.now()}`,
-      ecommerce_id: user.ecommerce?.id,
-      courier_id: Number(form.courier_id),
-      nombre_cliente: form.nombre_cliente,
-      numero_cliente: form.numero_cliente,
-      celular_cliente: form.celular_cliente,
-      direccion_envio: form.direccion_envio,
-      referencia_direccion: form.referencia_direccion,
-      distrito: form.distrito,
-      monto_recaudar: Number(form.monto_recaudar),
-      fecha_entrega_programada: new Date(
-        form.fecha_entrega_programada
-      ).toISOString(),
-      detalles: [
-        {
-          producto_id: Number(form.producto_id),
-          cantidad: Number(form.cantidad),
-          precio_unitario: Number(form.precio_unitario),
-        },
-      ],
+      sede_id: Number(form.sede_id),
+      zona_tarifaria_id: Number(zonaSeleccionada),
+      nombre_cliente: form.nombre_cliente.trim(),
+      numero_cliente: form.numero_cliente?.trim() || "",
+      celular_cliente: form.celular_cliente.trim(),
+      direccion_envio: form.direccion_envio.trim(),
+      referencia_direccion: form.referencia_direccion?.trim() || "",
+      distrito: distritoSeleccionado,
+      monto_recaudar: Number(montoPersonalizado),
+      fecha_entrega_programada: form.fecha_entrega_programada,
+      detalles: detalles.map((d) => ({
+        producto_id: d.producto_id,
+        cantidad: d.cantidad,
+        precio_unitario: d.precio_unitario,
+      })),
     };
 
+    setSubmitting(true);
     try {
       await crearPedido(payload, token);
       onPedidoCreado();
-      onClose();
-    } catch (err) {
-      console.error('Error creando pedido:', err);
+      handleClose();
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setSubmitting(false);
     }
   };
 
   if (!isOpen) return null;
 
+  /* ===================== UI ===================== */
   return (
-    <div className="fixed inset-0 z-50 bg-black/20 bg-opacity-40 flex justify-end">
+    <div
+      className="fixed inset-0 z-50 bg-black/30 flex justify-end"
+      onClick={handleClose}
+    >
       <div
-        ref={modalRef}
-        className="w-full max-w-md h-full bg-white shadow-xl p-6 overflow-y-auto animate-slide-in-right">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-semibold flex items-center gap-2 text-gray-700">
-            <BsBoxSeam className="text-primary text-2xl" />
-            {modo === 'ver'
-              ? 'DETALLES DEL PEDIDO'
-              : modo === 'editar'
-              ? 'EDITAR PEDIDO'
-              : 'REGISTRAR NUEVO PEDIDO'}
-          </h2>
-          <button
-            onClick={onClose}
-            className="text-gray-500 hover:text-gray-700">
-            <FiX className="w-6 h-6" />
-          </button>
+        className="h-full bg-white shadow-2xl flex flex-col w-[520px] max-w-[92vw]"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div className="p-5">
+          <Tittlex
+            variant="modal"
+            icon="lsicon:shopping-cart-filled"
+            title="Registrar pedido"
+            description="Un pedido puede tener varios productos y una sola fecha de entrega."
+          />
         </div>
 
-        <p className="text-sm text-gray-500 mb-6">
-          Complete los datos del cliente, el producto y la información de
-          entrega para{' '}
-          {modo === 'crear'
-            ? 'registrar un nuevo pedido'
-            : modo === 'editar'
-            ? 'editar el pedido'
-            : 'visualizar el pedido'}
-          .
-        </p>
+        {/* Body scroll */}
+        <div className="flex-1 overflow-y-auto px-5 pb-5 flex flex-col gap-5">
+          {/* SEDE */}
+          <Selectx
+            label="Sede"
+            name="sede_id"
+            labelVariant="left"
+            value={form.sede_id}
+            onChange={handleChange}
+          >
+            <option value="">Seleccionar opción</option>
+            {sedes.map((s) => (
+              <option key={s.sede_id} value={s.sede_id}>
+                {s.nombre}
+              </option>
+            ))}
+          </Selectx>
 
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Courier
-            </label>
-            <select
-              name="courier_id"
-              disabled={isReadOnly}
-              className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
-              onChange={handleChange}
-              value={form.courier_id}>
-              <option value="">Seleccionar courier</option>
-              {couriers.length === 0 && (
-                <option disabled value="">
-                  No hay couriers asociados
-                </option>
-              )}
-              {couriers.map((courier) => (
-                <option key={courier.id} value={courier.id}>
-                  {courier.nombre_comercial} 
-                </option>
-              ))}
-            </select>
-          </div>
+          {/* DISTRITO */}
+          <Selectx
+            label="Distrito"
+            labelVariant="left"
+            value={distritoSeleccionado}
+            onChange={(e) => {
+              const d = e.target.value;
+              setDistritoSeleccionado(d);
+              const zona = zonas.find((z) => z.distrito === d);
+              setZonaSeleccionada(zona ? String(zona.id) : "");
+            }}
+          >
+            <option value="">Seleccionar opción</option>
+            {distritos.map((d) => (
+              <option key={d} value={d}>
+                {d}
+              </option>
+            ))}
+          </Selectx>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Nombre
-            </label>
-            <input
-              name="nombre_cliente"
-              value={form.nombre_cliente}
-              disabled={isReadOnly}
-              placeholder="Ejem. Alvaro"
-              className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
-              onChange={handleChange}
-            />
-          </div>
+          {/* CLIENTE */}
+          <Inputx
+            label="Nombre cliente"
+            name="nombre_cliente"
+            value={form.nombre_cliente}
+            onChange={handleChange}
+          />
+          <InputxPhone
+            label="Teléfono"
+            name="celular_cliente"
+            countryCode="+51"
+            value={form.celular_cliente}
+            onChange={handleChange}
+          />
+          <Inputx
+            label="Dirección"
+            name="direccion_envio"
+            value={form.direccion_envio}
+            onChange={handleChange}
+          />
+          <Inputx
+            label="Referencia"
+            name="referencia_direccion"
+            value={form.referencia_direccion}
+            onChange={handleChange}
+          />
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Teléfono
-            </label>
-            <div className="flex border border-gray-300 rounded overflow-hidden">
-              <span className="px-3 py-2 text-sm bg-gray-100 text-gray-700">
-                +51
-              </span>
-              <input
-                type="text"
-                name="celular_cliente"
-                value={form.celular_cliente}
-                disabled={isReadOnly}
-                placeholder="987654321"
-                className="flex-1 px-3 py-2 text-sm outline-none"
-                onChange={handleChange}
-              />
-            </div>
-          </div>
+          {/* FECHA ENTREGA */}
+          <Inputx
+            type="date"
+            label="Fecha de entrega"
+            name="fecha_entrega_programada"
+            value={form.fecha_entrega_programada}
+            onChange={handleChange}
+          />
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Distrito
-            </label>
-            <select
-              name="distrito"
-              disabled={isReadOnly}
-              className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
-              onChange={handleChange}
-              value={form.distrito}>
-              <option value="">Seleccionar Distrito</option>
-              {zonas.map((zona, idx) => (
-                <option key={idx} value={zona.distrito}>
-                  {zona.distrito}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className="col-span-2">
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Dirección
-            </label>
-            <input
-              name="direccion_envio"
-              value={form.direccion_envio}
-              disabled={isReadOnly}
-              placeholder="Av. Grau J 499"
-              className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
-              onChange={handleChange}
-            />
-          </div>
-
-          <div className="col-span-2">
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Referencia
-            </label>
-            <input
-              name="referencia_direccion"
-              value={form.referencia_direccion}
-              disabled={isReadOnly}
-              placeholder="Al lado del supermercado UNO"
-              className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
-              onChange={handleChange}
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Producto
-            </label>
-            <select
+          {/* PRODUCTO */}
+          <div className="flex gap-5">
+            <Selectx
+              label="Producto"
               name="producto_id"
-              disabled={isReadOnly}
-              className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
-              onChange={(e) => {
-                handleChange(e);
-                const selected = productos.find(
-                  (p) => p.id === Number(e.target.value)
-                );
-                if (selected) {
-                  setForm((prev) => ({
-                    ...prev,
-                    precio_unitario: String(selected.precio || ''),
-                    cantidad: '',
-                    monto_recaudar: '',
-                  }));
-                }
-              }}
-              value={form.producto_id}>
-              <option value="">Seleccionar producto</option>
+              labelVariant="left"
+              value={form.producto_id}
+              onChange={handleChange}
+            >
+              <option value="">Seleccionar</option>
               {productos.map((p) => (
                 <option key={p.id} value={p.id}>
                   {p.nombre_producto}
                 </option>
               ))}
-            </select>
+            </Selectx>
+
+            <div className="w-54">
+              <InputxNumber
+                label={`Stock ${form.stock_max || 0}`}
+                name="cantidad"
+                value={form.cantidad}
+                onChange={handleChange}
+                min={1}
+                step={1}
+              />
+            </div>
+
+            <div className="w-38">
+              <InputxNumber
+                label="Precio"
+                name="precio_unitario"
+                value={form.precio_unitario}
+                onChange={handleChange}
+                min={0}
+                step={0.01}
+              />
+            </div>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Cantidad{' '}
-              {form.producto_id && (
-                <span className="text-xs text-gray-500">
-                  /
-                  {
-                    productos.find((p) => p.id === Number(form.producto_id))
-                      ?.stock
-                  }{' '}
-                  disponibles
-                </span>
-              )}
-            </label>
-            <input
-              name="cantidad"
-              value={form.cantidad}
-              disabled={isReadOnly}
-              placeholder="50"
-              className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
-              onChange={(e) => {
-                handleChange(e);
-                const cantidad = Number(e.target.value);
-                const precio = Number(form.precio_unitario);
-                if (!isNaN(cantidad) && !isNaN(precio)) {
-                  setForm((prev) => ({
-                    ...prev,
-                    monto_recaudar: String(cantidad * precio),
-                  }));
-                }
-              }}
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Monto
-            </label>
-            <input
-              name="monto_recaudar"
-              value={form.monto_recaudar}
-              disabled={isReadOnly}
-              placeholder="S/. 00.00"
-              className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
-              onChange={handleChange}
-            />
-            {form.precio_unitario && (
-              <p className="text-xs text-gray-500 mt-1">
-                Precio unitario: S/. {form.precio_unitario}
-              </p>
-            )}
-          </div>
+          <button
+            type="button"
+            onClick={handleAgregarProducto}
+            disabled={!form.producto_id || !form.cantidad}
+            className="border border-dashed rounded-lg py-2 flex items-center justify-center gap-2 text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+          >
+            <Icon icon="mdi:plus-circle-outline" />
+            Agregar producto
+          </button>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Fecha Entrega
-            </label>
-            <input
-              type="date"
-              name="fecha_entrega_programada"
-              value={form.fecha_entrega_programada}
-              disabled={isReadOnly}
-              className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
-              onChange={handleChange}
-            />
+          {/* LISTA PRODUCTOS */}
+          {detalles.length > 0 && (
+            <div className="bg-gray-50 border rounded-lg p-4 space-y-2 border-gray-700">
+              <div className="flex items-center gap-2 font-semibold text-gray-700">
+                <Icon icon="mdi:cart-outline" />
+                Productos agregados
+              </div>
+
+              {detalles.map((d) => (
+                <div
+                  key={d.producto_id}
+                  className="flex items-center justify-between text-sm gap-3"
+                >
+                  <span className="min-w-0 truncate">
+                    {d.nombre} x {d.cantidad}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveDetalle(d.producto_id)}
+                    title="Quitar"
+                  >
+                    <Icon icon="mdi:delete-outline" className="text-red-500" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* TOTAL A COBRAR */}
+          <div className="flex justify-end">
+            <div className="w-full">
+              <InputxNumber
+                label="Total a cobrar"
+                name="montoPersonalizado"
+                value={montoPersonalizado}
+                onChange={(e) => setMontoPersonalizado(e.target.value)}
+                min={0}
+                step={0.01}
+              />
+            </div>
           </div>
         </div>
 
-        {modo !== 'ver' && (
-          <div className="flex justify-end gap-2 mt-6">
-            <button
-              onClick={onClose}
-              className="px-4 py-2 border rounded text-sm text-gray-700 hover:bg-gray-50">
-              Cancelar
-            </button>
-            <button
+        {/* Footer */}
+        <div className="border-t border-gray-200 bg-white p-5">
+          <div className="flex gap-3">
+            <Buttonx
+              variant="tertiary"
               onClick={handleSubmit}
-              className="bg-gray-900 text-white px-4 py-2 rounded text-sm hover:bg-gray-800">
-              {modo === 'editar' ? 'Guardar cambios' : 'Crear nuevo'}
-            </button>
+              disabled={!canSubmit || submitting}
+              label={
+                submitting
+                  ? "Guardando…"
+                  : `Guardar (S/ ${Number(montoPersonalizado).toFixed(2)})`
+              }
+              icon={
+                submitting
+                  ? "line-md:loading-twotone-loop"
+                  : "mdi:content-save-outline"
+              }
+              className={`flex-1 ${submitting ? "[&_svg]:animate-spin" : ""}`}
+            />
+            <Buttonx
+              variant="outlinedw"
+              onClick={handleClose}
+              disabled={submitting}
+              label="Cancelar"
+              icon="mdi:close"
+              className="px-4"
+            />
           </div>
-        )}
+        </div>
       </div>
     </div>
   );

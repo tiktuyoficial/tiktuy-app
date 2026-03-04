@@ -1,89 +1,145 @@
-import { useEffect, useState } from 'react';
-import { createPortal } from 'react-dom';
+// src/shared/components/ecommerce/movimientos/CrearMovimientoModal.tsx
+import { useEffect, useMemo, useState } from "react";
 import {
-  fetchAlmacenes,
   registrarMovimiento,
-} from '@/services/ecommerce/almacenamiento/almacenamiento.api';
-import { fetchProductos } from '@/services/ecommerce/producto/producto.api';
-import { useAuth } from '@/auth/context';
-import type { Almacenamiento } from '@/services/ecommerce/almacenamiento/almacenamiento.types';
-import type { Producto } from '@/services/ecommerce/producto/producto.types';
-import { HiOutlineViewGridAdd } from 'react-icons/hi';
+  fetchAlmacenesEcommerCourier,
+} from "@/services/ecommerce/almacenamiento/almacenamiento.api";
+import { useAuth } from "@/auth/context";
+import type { Almacenamiento } from "@/services/ecommerce/almacenamiento/almacenamiento.types";
+import type { Producto } from "@/services/ecommerce/producto/producto.types";
+import { useNotification } from "@/shared/context/notificacionesDeskop/useNotification";
+import { Selectx } from "@/shared/common/Selectx";
+import Buttonx from "@/shared/common/Buttonx";
+import Tittlex from "@/shared/common/Tittlex";
+import { InputxTextarea } from "@/shared/common/Inputx";
 
 interface Props {
   open: boolean;
   onClose: () => void;
+  productos: Producto[];
   selectedProducts?: string[];
+  onSuccess?: () => void;
 }
 
 export default function CrearMovimientoModal({
   open,
   onClose,
-  selectedProducts = [],
+  productos,
+  onSuccess,
 }: Props) {
   const { token } = useAuth();
-  const [almacenes, setAlmacenes] = useState<Almacenamiento[]>([]);
-  const [productos, setProductos] = useState<Producto[]>([]);
-  const [cantidades, setCantidades] = useState<{ [id: string]: number }>({});
-  const [almacenOrigen, setAlmacenOrigen] = useState('');
-  const [almacenDestino, setAlmacenDestino] = useState('');
-  const [descripcion, setDescripcion] = useState('');
+  const { notify } = useNotification();
+  const [almacenes, setAlmacenes] = useState<{
+    ecommerce: Almacenamiento[];
+    courier: Almacenamiento[];
+  }>({
+    ecommerce: [],
+    courier: [],
+  });
+
+  const [cantidades, setCantidades] = useState<Record<string, number>>({});
+  const [almacenOrigen, setAlmacenOrigen] = useState("");
+  const [almacenDestino, setAlmacenDestino] = useState("");
+  const [descripcion, setDescripcion] = useState("");
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (!open || !token) return;
-    fetchAlmacenes(token).then(setAlmacenes).catch(console.error);
-    fetchProductos(token).then(setProductos).catch(console.error);
+
+    fetchAlmacenesEcommerCourier(token).then(setAlmacenes).catch(console.error);
+
+    setCantidades({});
+    setDescripcion("");
+    setAlmacenDestino("");
+    setAlmacenOrigen("");
   }, [open, token]);
 
-  // Autoasignar almacén origen basado en el primer producto seleccionado
-  useEffect(() => {
-    if (selectedProducts.length > 0 && productos.length > 0) {
-      const productoBase = productos.find(
-        (p) => p.uuid === selectedProducts[0]
-      );
-      if (productoBase?.almacenamiento_id) {
-        setAlmacenOrigen(productoBase.almacenamiento_id.toString());
-      }
-    }
-  }, [selectedProducts, productos]);
+  const productosSeleccionados = productos;
 
-  const handleCantidadChange = (
-    productoId: string,
-    value: number,
-    stock: number
- ) => {
-    setCantidades((prev) => ({
-      ...prev,
-      [productoId]: Math.min(Math.max(0, value), stock),
-    }));
+  const origenInferido = useMemo(() => {
+    const ids = productosSeleccionados
+      .map((p) =>
+        p.almacenamiento_id != null ? String(p.almacenamiento_id) : ""
+      )
+      .filter(Boolean);
+
+    if (!ids.length) return "";
+    const first = ids[0];
+    return ids.every((id) => id === first) ? first : "";
+  }, [productosSeleccionados]);
+
+  useEffect(() => {
+    if (origenInferido) {
+      setAlmacenOrigen(origenInferido);
+      setAlmacenDestino((d) => (d === origenInferido ? "" : d));
+    }
+  }, [origenInferido]);
+
+  const sedesOrigen = useMemo(() => {
+    return [...almacenes.ecommerce, ...almacenes.courier];
+  }, [almacenes]);
+
+  const sedeOrigenObj = useMemo(() => {
+    return sedesOrigen.find((s) => String(s.id) === String(almacenOrigen));
+  }, [sedesOrigen, almacenOrigen]);
+
+  const sedesDestino = useMemo(() => {
+    if (!sedeOrigenObj) return [];
+
+    // Origen courier → destino ecommerce
+    if (sedeOrigenObj.courier_id) {
+      return almacenes.ecommerce;
+    }
+
+    // Origen ecommerce → destino courier
+    if (sedeOrigenObj.ecommerce_id) {
+      return almacenes.courier;
+    }
+
+    return [];
+  }, [sedeOrigenObj, almacenes]);
+
+  useEffect(() => {
+    setAlmacenDestino("");
+  }, [almacenOrigen]);
+
+  const handleCantidadChange = (uuid: string, value: number, stock: number) => {
+    const safe = Math.min(Math.max(0, Math.trunc(value || 0)), stock);
+    setCantidades((prev) => ({ ...prev, [uuid]: safe }));
+  };
+
+  const validarAntesDeEnviar = () => {
+    if (!origenInferido) {
+      notify(
+        "Todos los productos deben pertenecer a la misma sede de origen.",
+        "error"
+      );
+      return false;
+    }
+    if (!almacenOrigen || !almacenDestino || almacenOrigen === almacenDestino) {
+      notify("Selecciona sedes válidas (origen y destino distintos).", "error");
+      return false;
+    }
+
+    const prods = productosSeleccionados.filter(
+      (p) => (cantidades[p.uuid] ?? 0) > 0
+    );
+    if (!prods.length) {
+      notify("Debes ingresar al menos una cantidad válida.", "error");
+      return false;
+    }
+    return true;
   };
 
   const handleSubmit = async () => {
-    if (!almacenOrigen || !almacenDestino || almacenOrigen === almacenDestino) {
-      alert('Selecciona almacenes válidos.');
-      return;
-    }
+    if (!validarAntesDeEnviar()) return;
 
-    const productosMov = selectedProducts
-      .filter((uuid) => cantidades[uuid] > 0)
-      .map((uuid) => {
-        const producto = productos.find((p) => p.uuid === uuid);
-        if (!producto) {
-          console.warn(`Producto con UUID ${uuid} no encontrado`);
-          return null;
-        }
-        return {
-          producto_id: producto.id,
-          cantidad: cantidades[uuid],
-        };
-      })
-      .filter((p): p is { producto_id: number; cantidad: number } => p !== null);
-
-    if (productosMov.length === 0) {
-      alert('Debes ingresar al menos una cantidad válida.');
-      return;
-    }
+    const productosMov = productosSeleccionados
+      .filter((p) => (cantidades[p.uuid] ?? 0) > 0)
+      .map((p) => ({
+        producto_id: p.id,
+        cantidad: cantidades[p.uuid],
+      }));
 
     setLoading(true);
     try {
@@ -97,155 +153,218 @@ export default function CrearMovimientoModal({
         token!
       );
 
-      // limpiar formulario
-      setCantidades({});
-      setDescripcion('');
-      setAlmacenOrigen('');
-      setAlmacenDestino('');
+      notify("Movimiento registrado correctamente.", "success");
+      onSuccess?.(); // Trigger refresh
       onClose();
-    } catch (err) {
-      console.error(err);
-      alert('Error al registrar el movimiento.');
+    } catch (e) {
+      console.error(e);
+      notify("Error al registrar el movimiento.", "error");
     } finally {
       setLoading(false);
     }
   };
 
+  const renderSedeLabel = (s: Almacenamiento) => {
+    const rep = s.representante
+      ? ` — ${s.representante.nombres} ${s.representante.apellidos}`
+      : "";
+    const tag =
+      s.entidad?.tipo === "ecommerce"
+        ? " [ECOM]"
+        : s.entidad?.tipo === "courier"
+          ? " [COURIER]"
+          : "";
+    return `${s.nombre_almacen}${rep}${tag}`;
+  };
+
   if (!open) return null;
 
-  const productosSeleccionados = productos.filter((p) =>
-    selectedProducts.includes(p.uuid)
-  );
-
-  return createPortal(
+  return (
     <div
-      className="fixed inset-0 z-50 flex justify-end bg-black/30"
-      onClick={onClose}>
-      <div
-        className="w-full max-w-2xl bg-white h-full overflow-y-auto shadow-lg p-6"
-        onClick={(e) => e.stopPropagation()}>
-        <h2 className="text-xl font-semibold flex items-center gap-2 mb-2">
-          <HiOutlineViewGridAdd size={20} className="text-primaryDark" />
-          REGISTRAR NUEVO MOVIMIENTO
-        </h2>
+      //  ahora sí: full alto pantalla (sin huecos raros)
+      className="h-[100dvh] max-h-[100dvh] w-[700px] max-w-[95vw] bg-white shadow-xl flex flex-col p-5 overflow-hidden min-h-0 gap-4"
+      onClick={(e) => e.stopPropagation()}
+    >
+      <div className="shrink-0">
+        <Tittlex
+          variant="modal"
+          icon="vaadin:stock"
+          title="REGISTRAR NUEVO MOVIMIENTO"
+          description="Selecciona productos y completa los datos para registrar un movimiento."
+        />
+      </div>
 
-        <p className="text-sm text-gray-500 mb-4">
-          Selecciona productos y completa los datos para registrar un
-          movimiento.
-        </p>
+      {/* ✅ CONTENIDO: el espacio extra (si existe) se reparte aquí, no dentro de la tabla */}
+      <div className="flex-1 min-h-0 flex flex-col gap-4">
+        {/* ✅ TABLA: ya NO se estira si hay pocas filas */}
+        <div className="rounded-md border border-gray-200 bg-white overflow-hidden">
+          {/* ✅ scroll solo si crece (sin “bloque vacío” gigante) */}
+          <div className="max-h-[46vh] overflow-y-auto">
+            <table className="min-w-full table-fixed text-[12px]">
+              <colgroup>
+                <col className="w-[18%]" />
+                <col className="w-[28%]" />
+                <col className="w-[34%]" />
+                <col className="w-[20%]" />
+              </colgroup>
 
-        <div
-          className={`border rounded overflow-hidden mb-6 ${
-            productosSeleccionados.length > 5 ? 'max-h-72 overflow-y-auto' : ''
-          }`}>
-          <table className="w-full text-sm">
-            <thead className="bg-gray-100 text-left">
-              <tr>
-                <th className="p-2">Código</th>
-                <th className="p-2">Producto</th>
-                <th className="p-2">Descripción</th>
-                <th className="p-2 text-right">Cantidad</th>
-              </tr>
-            </thead>
-            <tbody>
-              {productosSeleccionados.map((prod) => (
-                <tr key={prod.uuid} className="border-t">
-                  <td className="p-2">{prod.codigo_identificacion}</td>
-                  <td className="p-2">{prod.nombre_producto}</td>
-                  <td className="p-2 text-gray-500 truncate">
-                    {prod.descripcion}
-                  </td>
-                  <td className="p-2 text-right flex justify-end items-center gap-1">
-                    <input
-                      type="number"
-                      min={0}
-                      max={prod.stock}
-                      value={cantidades[prod.uuid] || ''}
-                      onChange={(e) =>
-                        handleCantidadChange(
-                          prod.uuid,
-                          Number(e.target.value),
-                          prod.stock
-                        )
-                      }
-                      className="w-16 border rounded px-2 py-1 text-right"
-                    />
-                    <span className="text-xs text-gray-400">
-                      / {prod.stock}
-                    </span>
-                  </td>
+              <thead className="bg-[#E5E7EB] sticky top-0 z-10">
+                <tr className="text-gray-700 font-roboto font-medium">
+                  <th className="px-4 py-3 text-left">Código</th>
+                  <th className="px-4 py-3 text-left">Producto</th>
+                  <th className="px-4 py-3 text-left">Descripción</th>
+                  <th className="px-4 py-3 text-center">Cantidad</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+
+              <tbody className="divide-y divide-gray-100">
+                {productosSeleccionados.map((p) => (
+                  <tr
+                    key={p.uuid}
+                    className="hover:bg-gray-50 transition-colors"
+                  >
+                    <td className="px-4 py-4 text-gray-900 whitespace-nowrap">
+                      {p.codigo_identificacion}
+                    </td>
+
+                    {/* ✅ evita que el nombre empuje la columna Cantidad */}
+                    <td className="px-4 py-4 text-gray-900 min-w-0">
+                      <div
+                        className="truncate font-medium"
+                        title={p.nombre_producto ?? ""}
+                      >
+                        {p.nombre_producto ?? "—"}
+                      </div>
+                    </td>
+
+                    <td className="px-4 py-4 text-gray-700 min-w-0">
+                      <div className="truncate" title={p.descripcion ?? ""}>
+                        {p.descripcion ?? "—"}
+                      </div>
+                    </td>
+
+                    <td className="px-4 py-4">
+                      <div className="flex justify-center items-center gap-2 whitespace-nowrap">
+                        <input
+                          type="number"
+                          min={0}
+                          max={p.stock}
+                          value={
+                            Number.isFinite(cantidades[p.uuid])
+                              ? cantidades[p.uuid]
+                              : ""
+                          }
+                          onChange={(e) =>
+                            handleCantidadChange(
+                              p.uuid,
+                              Number(e.target.value),
+                              p.stock
+                            )
+                          }
+                          className="w-[64px] h-9 rounded-lg border border-gray-300 px-2 text-center text-sm"
+                        />
+                        <span className="text-sm text-gray-600">/ {p.stock}</span>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+
+                {productosSeleccionados.length === 0 && (
+                  <tr>
+                    <td
+                      colSpan={4}
+                      className="px-4 py-6 text-center text-gray-500 italic"
+                    >
+                      No hay productos seleccionados.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
 
-        {/* Almacenes */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-          <div>
-            <label className="block text-sm font-medium mb-1">
-              Almacén Origen
-            </label>
-            <select
-              value={almacenOrigen}
-              onChange={(e) => setAlmacenOrigen(e.target.value)}
-              className="w-full border rounded px-3 py-2">
-              <option value="">Seleccionar almacén</option>
-              {almacenes.map((a) => (
-                <option key={a.id} value={a.id}>
-                  {a.nombre_almacen}
-                </option>
-              ))}
-            </select>
-          </div>
+        {/* ✅ Campos (quedan más compactos y ordenados) */}
+        <div className="grid grid-cols-2 gap-5">
+          <Selectx
+            label="Sede Origen"
+            name="almacen_origen"
+            labelVariant="left"
+            value={almacenOrigen ?? ""}
+            onChange={(e) => setAlmacenOrigen(e.target.value)}
+            placeholder="Seleccionar sede"
+          >
+            <option value="">Seleccionar sede</option>
+            {sedesOrigen.map((s) => (
+              <option key={s.id} value={String(s.id)}>
+                {renderSedeLabel(s)}
+              </option>
+            ))}
+          </Selectx>
 
-          <div>
-            <label className="block text-sm font-medium mb-1">
-              Almacén Destino
-            </label>
-            <select
-              value={almacenDestino}
-              onChange={(e) => setAlmacenDestino(e.target.value)}
-              className="w-full border rounded px-3 py-2">
-              <option value="">Seleccionar almacén</option>
-              {almacenes.map((a) => (
-                <option key={a.id} value={a.id}>
-                  {a.nombre_almacen}
+          <Selectx
+            label="Sede Destino"
+            name="almacen_destino"
+            labelVariant="left"
+            value={almacenDestino ?? ""}
+            onChange={(e) => setAlmacenDestino(e.target.value)}
+            placeholder="Seleccionar sede"
+          >
+            <option value="">Seleccionar sede</option>
+            {sedesDestino.length === 0 ? (
+              <option value="" disabled>
+                {almacenOrigen
+                  ? "No hay sedes asociadas del courier distintas del origen."
+                  : "No hay sedes asociadas disponibles."}
+              </option>
+            ) : (
+              sedesDestino.map((s) => (
+                <option key={s.id} value={String(s.id)}>
+                  {renderSedeLabel(s)}
                 </option>
-              ))}
-            </select>
-          </div>
+              ))
+            )}
+          </Selectx>
         </div>
 
-        {/* Descripción */}
-        <div className="mb-6">
-          <label className="block text-sm font-medium mb-1">Descripción</label>
-          <textarea
-            rows={3}
-            value={descripcion}
-            onChange={(e) => setDescripcion(e.target.value)}
-            placeholder="Motivo del movimiento..."
-            className="w-full border rounded px-3 py-2 resize-none"
+        <InputxTextarea
+          name="descripcion"
+          label="Descripción"
+          value={descripcion}
+          onChange={(e) => setDescripcion(e.target.value)}
+          placeholder="Motivo del movimiento..."
+          autoResize
+          minRows={2}
+          maxRows={6}
+        />
+      </div>
+
+      {/* Footer: SIEMPRE visible */}
+      <div className="shrink-0 border-t border-gray-200 pt-4">
+        <div className="flex items-center gap-5">
+          <Buttonx
+            variant="quartery"
+            disabled={
+              loading ||
+              !origenInferido ||
+              !almacenOrigen ||
+              !almacenDestino ||
+              almacenOrigen === almacenDestino
+            }
+            onClick={handleSubmit}
+            label={loading ? "Registrando..." : "Crear nuevo"}
+            icon={loading ? "line-md:loading-twotone-loop" : undefined}
+            className={`px-4 text-sm ${loading ? "[&_svg]:animate-spin" : ""}`}
+          />
+          <Buttonx
+            variant="outlinedw"
+            onClick={onClose}
+            label="Cancelar"
+            className="px-4 text-sm border"
+            disabled={loading}
           />
         </div>
-
-        {/* Botones */}
-        <div className="flex justify-end gap-2">
-          <button
-            onClick={onClose}
-            disabled={loading}
-            className="px-4 py-2 border rounded hover:bg-gray-100">
-            Cancelar
-          </button>
-          <button
-            onClick={handleSubmit}
-            disabled={loading}
-            className="px-4 py-2 bg-black text-white rounded hover:bg-gray-800">
-            {loading ? 'Registrando...' : 'Crear nuevo'}
-          </button>
-        </div>
       </div>
-    </div>,
-    document.body
+    </div>
   );
 }

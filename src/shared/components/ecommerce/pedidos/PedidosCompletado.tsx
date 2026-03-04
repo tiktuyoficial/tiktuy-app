@@ -1,13 +1,44 @@
+import { useState, useCallback } from 'react';
 import PedidosTableCompletado from './table/PedidosTableCompletado';
+import VerPedidoCompletadoModal from './Completado/VerPedidoModal';
 
-export default function PedidosCompletado() {
-    return (
-      <div className="mt-6 bg-white rounded shadow p-4">
-        <h2 className="text-lg font-semibold text-primaryDark">Pedidos Completados</h2>
-        <p className="text-sm text-gray-600">Pedidos en su estado final.</p>
+type Filtros = {
+  courier: string;
+  producto: string;
+  fechaInicio: string;
+  fechaFin: string;
+};
 
-        <PedidosTableCompletado />
-      </div>
-    );
-  }
-  
+interface PedidosCompletadoProps {
+  filtros: Filtros;
+}
+
+export default function PedidosCompletado({ filtros }: PedidosCompletadoProps) {
+  const [selectedId, setSelectedId] = useState<number | null>(null);
+  const [verOpen, setVerOpen] = useState(false);
+
+  const handleVer = useCallback((id: number) => {
+    setSelectedId(id);
+    setVerOpen(true);
+  }, []);
+
+  const handleClose = useCallback(() => {
+    setSelectedId(null);
+    setVerOpen(false);
+  }, []);
+
+  return (
+    <div className="bg-white rounded-md overflow-hidden shadow-default">
+      <PedidosTableCompletado
+        filtros={filtros}
+        onVer={handleVer}
+      />
+
+      <VerPedidoCompletadoModal
+        isOpen={verOpen}
+        onClose={handleClose}
+        pedidoId={selectedId}
+      />
+    </div>
+  );
+}

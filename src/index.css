@@ -1,23 +1,69 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@100;200;300;400;500;600;700;800;900&display=swap');
 @import "tailwindcss";
 
+/* ---------- Theme tokens ---------- */
 @theme {
-
-  /* Colors */
   --color-primary: #1E3A8A;
-  --color-primaryDark: #1A253D;
+  --color-primaryLight: #0044FF;
+  --color-primaryDark: #111827;
 
-  /* Fonts */
-  
+  --color-backgroundModal: rgba(0, 0, 0, 0.5);
+
+  --color-gray90: #111827;
+  --color-gray80: #1F2937;
+  --color-gray70: #374151;
+  --color-gray60: #4B5563;
+  --color-gray40: #9CA3AF;
+  --color-gray30: #D1D5DB;
+  --color-gray20: #E5E7EB;
+  --color-gray10: #F3F4F6;
+
+  --shadow-default: 0 0 4px 0 rgba(0, 0, 0, 0.3);
 }
 
+/* Utilidad opcional para contenedores con scroll propio */
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* Base */
 :root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  font-family: 'Roboto', sans-serif;
   line-height: 1.5;
   font-weight: 400;
-
-
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+/* Fondo de ejemplo */
+.fondo-imagen {
+  background-image: url('./src/shared/components/ecommerce/ui/fondor.jpg');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  height: 100vh;
+  width: 100%;
+}
+
+/* ------------ Scrollbars ocultas (pero scroll activo) ------------ */
+html, body, #root {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: clip;          /* evita barra horizontal por filtros/sombras/pintura */
+}
+@supports not (overflow-x: clip) {
+  html, body, #root { overflow-x: hidden; }
+}
+
+/* Oculta barra vertical visual (mantiene desplazamiento) */
+html, body {
+  -ms-overflow-style: none;  /* IE/Edge */
+  scrollbar-width: none;     /* Firefox */
+}
+html::-webkit-scrollbar,
+body::-webkit-scrollbar {
+  width: 0 !important;
+  height: 0 !important;
+  display: none;
 }

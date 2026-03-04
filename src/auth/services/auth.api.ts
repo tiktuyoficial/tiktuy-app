@@ -1,5 +1,5 @@
 // --- Tipos de rol y módulos ---
-export type Role = 'admin' | 'ecommerce' | 'courier' | 'motorizado';
+export type Role = 'admin' | 'ecommerce' | 'courier' | 'motorizado' | 'trabajador';
 export type ModuloAsignado = 'stock' | 'producto' | 'movimiento' | 'pedidos';
 
 export type Rol = {
@@ -32,6 +32,9 @@ export type User = {
   estado: string;
   rol?: Rol;
   trabajador?: Trabajador;
+  ecommerce_nombre: string;
+  courier_nombre: string;
+  motorizado_courier_nombre: string;
 };
 
 // --- Tipos de login y registro ---
@@ -54,39 +57,30 @@ export type LoginResponse = {
   token: string;
   user: User;
 };
-
-export type RegisterTrabajadorData = {
-  nombres: string;
-  apellidos: string;
-  correo: string;
-  contrasena: string; 
-  estado: string;
-  DNI_CI: string;
-  rol_perfil_id: number;
-  modulo: ModuloAsignado;
-  codigo_trabajador?: string;
+// --- Recuperar contraseña ---
+export type RecoverPasswordRequest = {
+  email: string;
 };
 
-export type RegisterTrabajadorResponse = {
-  usuario: User;
-  perfilTrabajador: {
-    id: number;
-    estado: string;
-    codigo_trabajador: string;
-    modulo_asignado: ModuloAsignado;
-    rol_perfil_id: number;
-    perfil?: Perfil;
-    usuario: User;
-  };
+export type RecoverPasswordConfirmRequest = {
+  token: string;
+  password: string;
+  confirmPassword: string;
 };
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+export type RecoverPasswordResponse = {
+  ok: boolean;
+  message?: string;
+};
+
+const API_URL = import.meta.env.VITE_API_URL;
+const BASE_URL = `${API_URL}`;
 
 // --- Login ---
 export async function loginRequest(
   credentials: LoginCredentials
 ): Promise<LoginResponse> {
-  const res = await fetch(`${API_URL}/auth/login`, {
+  const res = await fetch(`${BASE_URL}/auth/login`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -96,8 +90,13 @@ export async function loginRequest(
   });
 
   if (!res.ok) {
-    const { error } = await res.json().catch(() => ({}));
-    throw new Error(error || 'Error al iniciar sesión');
+    const errorData = await res.json().catch(() => ({}));
+    // Si el mensaje de error contiene una URL o parece un error de sistema, mostramos un mensaje genérico.
+    const errorMessage = errorData.error || 'Error al iniciar sesión';
+    if (errorMessage.includes('http') || errorMessage.includes('fetch') || errorMessage.length > 200) {
+      throw new Error('Error de conexión con el servidor');
+    }
+    throw new Error(errorMessage);
   }
 
   return await res.json();
@@ -108,7 +107,7 @@ export async function registerRequest(
   userData: RegisterData,
   token: string
 ): Promise<LoginResponse> {
-  const res = await fetch(`${API_URL}/auth/register`, {
+  const res = await fetch('/auth/register', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -120,14 +119,18 @@ export async function registerRequest(
       correo: userData.email,
       contrasena: userData.password,
       rol_id: userData.rol_id,
-      estado_id: userData.estado, // solo si el backend espera estado_id
+      estado_id: userData.estado,
       DNI_CI: userData.DNI_CI,
     }),
   });
 
   if (!res.ok) {
-    const { error } = await res.json().catch(() => ({}));
-    throw new Error(error || 'Error al registrar usuario');
+    const errorData = await res.json().catch(() => ({}));
+    const errorMessage = errorData.error || 'Error al registrar usuario';
+    if (errorMessage.includes('http') || errorMessage.includes('fetch') || errorMessage.length > 200) {
+      throw new Error('Error al conectar con el servidor');
+    }
+    throw new Error(errorMessage);
   }
 
   return await res.json();
@@ -135,7 +138,7 @@ export async function registerRequest(
 
 // --- Obtener usuario actual ---
 export async function fetchMe(token: string): Promise<User> {
-  const res = await fetch(`${API_URL}/auth/me`, {
+  const res = await fetch('/auth/me', {
     headers: {
       Authorization: `Bearer ${token}`,
     },
@@ -148,23 +151,51 @@ export async function fetchMe(token: string): Promise<User> {
   return await res.json();
 }
 
-// --- Registro de trabajador ---
-export async function registerTrabajadorRequest(
-  data: RegisterTrabajadorData,
-  token: string
-): Promise<RegisterTrabajadorResponse> {
-  const res = await fetch(`${API_URL}/auth/register-trabajador`, {
+// --- Solicitar recuperación de contraseña ---
+export async function recoverPasswordRequest(
+  data: RecoverPasswordRequest
+): Promise<RecoverPasswordResponse> {
+  const res = await fetch('/auth/recuperar-contrasena', {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`,
-    },
-    body: JSON.stringify(data),
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      correo: data.email,
+    }),
   });
 
   if (!res.ok) {
-    const { error } = await res.json().catch(() => ({}));
-    throw new Error(error || 'Error al registrar trabajador');
+    const errorData = await res.json().catch(() => ({}));
+    const errorMessage = errorData.error || 'Error al solicitar recuperación';
+    if (errorMessage.includes('http') || errorMessage.includes('fetch')) {
+      throw new Error('Error de conexión con el servidor');
+    }
+    throw new Error(errorMessage);
+  }
+
+  return await res.json();
+}
+
+// --- Confirmar recuperación de contraseña ---
+export async function confirmRecoverPasswordRequest(
+  data: RecoverPasswordConfirmRequest
+): Promise<RecoverPasswordResponse> {
+  const res = await fetch('/auth/recuperar-contrasena/confirmar', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      token: data.token,
+      contrasena: data.password,
+      confirmar_contrasena: data.confirmPassword,
+    }),
+  });
+
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    const errorMessage = errorData.error || 'Error al confirmar recuperación';
+    if (errorMessage.includes('http') || errorMessage.includes('fetch')) {
+      throw new Error('Error de conexión con el servidor');
+    }
+    throw new Error(errorMessage);
   }
 
   return await res.json();

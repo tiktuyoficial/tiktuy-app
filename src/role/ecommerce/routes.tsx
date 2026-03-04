@@ -2,12 +2,12 @@ import type { RouteObject } from 'react-router-dom';
 import EcommerceHomePage from './pages/HomePage';
 import AlmacenPage from './pages/AlmacenPage';
 import StockPage from './pages/StockProducto';
-import CuadreSaldoPage from './pages/CuadreSaldoPage';
 import PerfilesPage from './pages/PerfilesPage';
 import ReportesPage from './pages/ReportesPage';
 import ConfiguracionPage from './pages/ConfiguracionPage';
 import MovimientosPage from './pages/MovimientosPage';
 import PedidosPage from './pages/PedidosPage';
+import CuadreSaldoPage from './pages/CuadreSalgoPage';
 
 export const ecommerceRoutes: RouteObject[] = [
   { path: '', element: <EcommerceHomePage /> },

@@ -1,3 +1,4 @@
+// src/auth/pages/LoginPage.tsx
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import BackgroundImage from '@/assets/images/login-background.webp';
@@ -8,8 +9,29 @@ import {
   roleDefaultPaths,
   type Role,
   moduloAsignadoValues,
-  type ModuloAsignado,
 } from '@/auth/constants/roles';
+
+// Type guard de rol
+const isRole = (r: unknown): r is Role =>
+  typeof r === 'string' && (validRoles as readonly string[]).includes(r as Role);
+
+// Helper: toma el primer módulo válido desde una cadena con comas o un string simple
+function getPrimerModuloValido(moduloAsignado?: unknown): string | null {
+  if (typeof moduloAsignado !== 'string' || moduloAsignado.trim() === '') return null;
+
+  // Puede venir "stock, movimiento, pedidos" → tomamos el primero válido
+  const partes = moduloAsignado
+    .split(',')
+    .map((p) => p.trim())
+    .filter(Boolean);
+
+  for (const p of partes) {
+    if ((moduloAsignadoValues as readonly string[]).includes(p as any)) {
+      return p;
+    }
+  }
+  return null;
+}
 
 export default function LoginPage() {
   const { user } = useAuth();
@@ -18,27 +40,50 @@ export default function LoginPage() {
   useEffect(() => {
     if (!user) return;
 
-    const currentPath = window.location.pathname;
+    const currentPath =
+      (typeof window !== 'undefined' ? window.location.pathname : '/')?.replace(/\/+$/, '') || '/';
 
-    // Redirección para roles principales
-    const role = user.rol?.nombre;
-    if (role && validRoles.includes(role)) {
-      const targetPath = roleDefaultPaths[role as Role];
-      if (currentPath !== targetPath) {
-        navigate(targetPath, { replace: true });
+    // Normaliza el nombre del rol a minúsculas
+    const roleName: unknown =
+      typeof user?.rol?.nombre === 'string' ? user.rol.nombre.toLowerCase() : undefined;
+
+    // 1) Priorizar módulo si es TRABAJADOR (usa el primer módulo válido)
+    if (isRole(roleName) && roleName === 'trabajador') {
+      const primerModulo = getPrimerModuloValido(user?.perfil_trabajador?.modulo_asignado);
+      if (primerModulo) {
+        const target = (`/${primerModulo}`).replace(/\/+$/, '') || '/';
+        if (currentPath !== target) navigate(target, { replace: true });
+        return;
+      }
+      // si no tiene módulo válido, caerá al mapeo por rol (abajo) o se quedará en login si no hay ruta
+    }
+
+    // 2) Rol principal
+    if (isRole(roleName)) {
+      // roleDefaultPaths ya contempla:
+      // - admin → /admin
+      // - ecommerce → /ecommerce
+      // - courier → /courier
+      // - motorizado → /motorizado
+      // - trabajador → /trabajador (si no tiene módulo)
+      // - representante → '/'
+      // - representante_ecommerce → '/ecommerce'
+      // - representante_courier → '/courier'
+      const targetPath = roleDefaultPaths[roleName];
+      let normTarget = targetPath.replace(/\/+$/, '') || '/';
+
+      // Override para Courier: redirigir a /pedidos al iniciar sesión
+      if (roleName === 'courier' && normTarget === '/courier') {
+        normTarget = '/courier/pedidos';
+      }
+
+      if (currentPath !== normTarget) {
+        navigate(normTarget, { replace: true });
       }
       return;
     }
 
-    // Redirección para trabajadores con módulo asignado
-    const moduloAsignado = user.trabajador?.perfil?.modulo_asignado;
-    if (
-      moduloAsignado &&
-      moduloAsignadoValues.includes(moduloAsignado as ModuloAsignado) &&
-      currentPath !== `/${moduloAsignado}`
-    ) {
-      navigate(`/${moduloAsignado}`, { replace: true });
-    }
+    // 3) Sin rol válido: permanece en login
   }, [user, navigate]);
 
   return (
