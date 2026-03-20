@@ -18,22 +18,22 @@ export default defineConfig(({ mode }) => ({
     strictPort: true,
     proxy: {
       '/auth': {
-        target: 'http://localhost:4000',
+        target: 'https://tiktuy-app-backend-production.up.railway.app',
         changeOrigin: true,
         secure: true,
       },
       '/admin-ventas': {
-        target: 'http://localhost:4000',
+        target: 'https://tiktuy-app-backend-production.up.railway.app',
         changeOrigin: true,
         secure: true,
       },
       '/admin-reportes': {
-        target: 'http://localhost:4000',
+        target: 'https://tiktuy-app-backend-production.up.railway.app',
         changeOrigin: true,
         secure: true,
       },
       '/repartidor-reportes': {
-        target: 'http://localhost:4000',
+        target: 'https://tiktuy-app-backend-production.up.railway.app',
         changeOrigin: true,
         secure: true,
       },
