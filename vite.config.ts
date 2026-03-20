@@ -9,7 +9,7 @@ export default defineConfig(({ mode }) => ({
   ],
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, 'src'), // permite usar @/ en imports
+      '@': path.resolve(__dirname, 'src'), 
     },
   },
   server: {
@@ -18,36 +18,33 @@ export default defineConfig(({ mode }) => ({
     strictPort: true,
     proxy: {
       '/auth': {
-        target: 'https://tiktuy-app-backend-production.up.railway.app',
+        target: 'http://localhost:4000',
         changeOrigin: true,
         secure: true,
       },
       '/admin-ventas': {
-        target: 'https://tiktuy-app-backend-production.up.railway.app',
+        target: 'http://localhost:4000',
         changeOrigin: true,
         secure: true,
       },
       '/admin-reportes': {
-        target: 'https://tiktuy-app-backend-production.up.railway.app',
+        target: 'http://localhost:4000',
         changeOrigin: true,
         secure: true,
       },
       '/repartidor-reportes': {
-        target: 'https://tiktuy-app-backend-production.up.railway.app',
+        target: 'http://localhost:4000',
         changeOrigin: true,
         secure: true,
       },
-      // si luego quieres más rutas:
+      // ejemplo mas rutas:
       // '/pedido': { target: 'https://...', changeOrigin: true },
       // '/producto': { target: 'https://...', changeOrigin: true },
     },
   },
   build: {
-    //  Solo genera source maps en desarrollo
     sourcemap: mode === 'development',
-
-    // Opcional: optimización adicional en producción
-    minify: 'esbuild', // o 'terser' si quieres compresión más avanzada
+    minify: 'esbuild',
     target: 'esnext',
     outDir: 'dist',
     emptyOutDir: true,
