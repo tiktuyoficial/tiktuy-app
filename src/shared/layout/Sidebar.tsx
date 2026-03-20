@@ -133,12 +133,6 @@ export default function Sidebar({ isOpen, toggle }: Props) {
         icon: <Icon icon="lucide:layout-panel-top" width="24" height="24" />,
       },
       {
-        to: "/almacen",
-        label: "Sede",
-        icon: <Icon icon="hugeicons:warehouse" width="24" height="24" />,
-        modulo: "pedidos",
-      },
-      {
         to: "/stock",
         label: "Stock de Productos",
         icon: <Icon icon="vaadin:stock" width="24" height="24" />,
@@ -177,6 +171,12 @@ export default function Sidebar({ isOpen, toggle }: Props) {
         to: "/reportes",
         label: "Reportes",
         icon: <Icon icon="carbon:report-data" width="24" height="24" />,
+      },
+      {
+        to: "/almacen",
+        label: "Sede",
+        icon: <Icon icon="hugeicons:warehouse" width="24" height="24" />,
+        modulo: "pedidos",
       },
     ],
 

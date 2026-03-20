@@ -393,7 +393,6 @@ export default function ReportesPage() {
               onPageChange={handlePageChange}
               showArrows={true}
               appearance="grayRounded"
-              // 👇 apaga el borde inferior del paginador (para que no se duplique con el de la tabla)
               containerClassName="!mt-0 !border-b-0"
             />
           </div>

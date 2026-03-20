@@ -5,11 +5,13 @@ import { Icon } from "@iconify/react";
 import { roleConfigs } from "@/shared/constants/roleConfigs";
 import NotificationBellIcon from "@/shared/context/notificacionesBell/NotificationBellIcon";
 import PerfilUser from "../components/user/PerfilUser";
+import { useOnboardingContext } from "@/shared/context/onboarding/OnboardingContext";
 
 export default function Header() {
   const { user } = useAuth();
   const role = user?.rol?.nombre || "";
   const config = roleConfigs[role];
+  const { restartTour } = useOnboardingContext();
 
   const [openPerfil, setOpenPerfil] = useState(false);
 
@@ -34,9 +36,19 @@ export default function Header() {
           {/* Acciones */}
           <div className="flex items-center gap-2">
             {/* Campana */}
-            <div className="relative inline-flex h-10 w-10 items-center justify-center rounded-full hover:bg-gray-100 transition focus-within:ring-2 focus-within:ring-[#1E3A8A]/30">
+            <div id="tour-header-bell" className="relative inline-flex h-10 w-10 items-center justify-center rounded-full hover:bg-gray-100 transition focus-within:ring-2 focus-within:ring-[#1E3A8A]/30">
               <NotificationBellIcon />
             </div>
+
+            {/* Botón: Ver guía */}
+            <button
+              onClick={restartTour}
+              className="inline-flex items-center justify-center h-10 w-10 rounded-full text-gray-500 hover:text-[#1E3A8A] hover:bg-gray-100 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1E3A8A]/30"
+              aria-label="Ver guía de inicio"
+              title="Ver guía de inicio"
+            >
+              <Icon icon="solar:lightbulb-bolt-linear" width={20} height={20} />
+            </button>
 
             {/* Settings */}
             <button
@@ -51,7 +63,7 @@ export default function Header() {
           <div className="h-8 w-px bg-gray-200" />
 
           {/* Usuario */}
-          <div className="flex items-center gap-3 max-w-[380px] min-w-0">
+          <div id="tour-header-user" className="flex items-center gap-3 max-w-[380px] min-w-0">
             <div className="h-10 w-10 rounded-full bg-[#1E3A8A] text-white flex items-center justify-center shadow-sm">
               <span className="text-sm font-semibold">{initials}</span>
             </div>
@@ -66,14 +78,14 @@ export default function Header() {
 
               {config && (
                 <span
-  className={`mt-1 inline-flex w-fit flex-none items-center gap-1.5 whitespace-nowrap
+                  className={`mt-1 inline-flex w-fit flex-none items-center gap-1.5 whitespace-nowrap
     text-[11px] font-medium px-2 py-0.5 rounded-md
     justify-self-start
     ${config.bg} ${config.text}`}
->
-  {config.icon}
-  {config.label}
-</span>
+                >
+                  {config.icon}
+                  {config.label}
+                </span>
               )}
             </div>
           </div>
