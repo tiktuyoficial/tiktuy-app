@@ -107,7 +107,7 @@ export async function registerRequest(
   userData: RegisterData,
   token: string
 ): Promise<LoginResponse> {
-  const res = await fetch('/auth/register', {
+  const res = await fetch(`${BASE_URL}/auth/register`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -138,7 +138,7 @@ export async function registerRequest(
 
 // --- Obtener usuario actual ---
 export async function fetchMe(token: string): Promise<User> {
-  const res = await fetch('/auth/me', {
+  const res = await fetch(`${BASE_URL}/auth/me`, {
     headers: {
       Authorization: `Bearer ${token}`,
     },
@@ -155,7 +155,7 @@ export async function fetchMe(token: string): Promise<User> {
 export async function recoverPasswordRequest(
   data: RecoverPasswordRequest
 ): Promise<RecoverPasswordResponse> {
-  const res = await fetch('/auth/recuperar-contrasena', {
+  const res = await fetch(`${BASE_URL}/auth/recuperar-contrasena`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -179,7 +179,7 @@ export async function recoverPasswordRequest(
 export async function confirmRecoverPasswordRequest(
   data: RecoverPasswordConfirmRequest
 ): Promise<RecoverPasswordResponse> {
-  const res = await fetch('/auth/recuperar-contrasena/confirmar', {
+  const res = await fetch(`${BASE_URL}/auth/recuperar-contrasena/confirmar`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({

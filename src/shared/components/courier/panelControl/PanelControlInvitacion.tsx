@@ -6,6 +6,7 @@ import {
   generarLinkInvitacionMotorizado,
   getAuthToken,
 } from "@/services/courier/panel_control/panel_control.api";
+import { useRoleUiConfig } from "@/auth/constants/useRoleUiConfig";
 
 interface InvitarModalProps {
   onClose: () => void;
@@ -19,6 +20,7 @@ export default function PanelControlInvitacion({
   activeTab,
   sedeId,
 }: InvitarModalProps) {
+  const config = useRoleUiConfig();
   const [link, setLink] = useState("");
   const [loading, setLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -73,7 +75,12 @@ export default function PanelControlInvitacion({
         if (!mounted) return;
 
         if (res.ok) {
-          setLink(res.data.link);
+          let backendLink = res.data.link;
+          if (activeTab === "ecommerce" && config.labels.tableEntityColumn === "Restaurante") {
+            const separator = backendLink.includes("?") ? "&" : "?";
+            backendLink += `${separator}tipo=restaurante`;
+          }
+          setLink(backendLink);
         } else {
           setErrorMsg(
             res.error ||
@@ -101,12 +108,12 @@ export default function PanelControlInvitacion({
   // Texto dinámico
   const shareLabel =
     activeTab === "ecommerce"
-      ? "¡Únete a nuestra plataforma como Ecommerce! Completa tu registro aquí:"
+      ? `¡Únete a nuestra plataforma como ${config.labels.tableEntityColumn}! Completa tu registro aquí:`
       : "¡Únete como Motorizado! Completa tu registro aquí:";
 
   const mailSubject =
     activeTab === "ecommerce"
-      ? "Invitación a registrarte como Ecommerce"
+      ? `Invitación a registrarte como ${config.labels.tableEntityColumn}`
       : "Invitación a registrarte como Motorizado";
 
   const shareText = useMemo(() => encodeURIComponent(shareLabel), [shareLabel]);
@@ -171,7 +178,7 @@ export default function PanelControlInvitacion({
           {/* Descripción */}
           <p className="text-center text-sm text-gray-600">
             {activeTab === "ecommerce"
-              ? "Invita a nuevos ecommerces a unirse a la plataforma compartiendo este enlace."
+              ? `Invita a nuevos ${config.labels.tableEntityColumn.toLowerCase()}s a unirse a la plataforma compartiendo este enlace.`
               : "Invita a nuevos motorizados a unirse a la plataforma compartiendo este enlace."}
           </p>
 

@@ -3,6 +3,7 @@
 import { Selectx, SelectxDate } from "@/shared/common/Selectx";
 import { SearchInputx } from "@/shared/common/SearchInputx";
 import Buttonx from "@/shared/common/Buttonx";
+import { useRoleUiConfig } from "@/auth/constants/useRoleUiConfig";
 
 export interface MovimientoEcommerceFilters {
     estado: string; // 'Registrado' | 'Proceso' | 'Observado' | 'Validado' | ''
@@ -17,6 +18,7 @@ interface Props {
 }
 
 export default function MovimientoValidadoFilter({ value, onChange, onClear }: Props) {
+    const config = useRoleUiConfig();
     return (
         <div className="px-0 py-0 mb-5">
             <div className="bg-white p-5 rounded shadow-default flex flex-wrap items-end gap-4 border-b-4 border-gray90">
@@ -50,7 +52,7 @@ export default function MovimientoValidadoFilter({ value, onChange, onClear }: P
                 {/* Buscador */}
                 <div className="flex-[1.4] min-w-[260px]">
                     <SearchInputx
-                        placeholder="Buscar por descripción, almacén o producto"
+                        placeholder={`Buscar por descripción, ${config.labels.labelAlmacen.toLowerCase()} o ${config.labels.labelProducto.toLowerCase()}`}
                         value={value.q}
                         onChange={(e) => onChange({ q: e.target.value })}
                     />

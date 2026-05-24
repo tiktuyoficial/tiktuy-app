@@ -5,6 +5,7 @@ import { Selectx } from "@/shared/common/Selectx";
 import Buttonx from "@/shared/common/Buttonx";
 import Tittlex from "@/shared/common/Tittlex";
 import { Icon } from "@iconify/react";
+import { useRoleUiConfig } from "@/auth/constants/useRoleUiConfig";
 
 interface Props {
   isOpen: boolean;
@@ -50,6 +51,7 @@ const moduloIconMap: Record<string, string> = {
 };
 
 export default function PerfilFormModal({ isOpen, onClose, onCreated }: Props) {
+  const config = useRoleUiConfig();
   const [form, setForm] = useState({
     nombre: "",
     apellido: "",
@@ -235,7 +237,7 @@ export default function PerfilFormModal({ isOpen, onClose, onCreated }: Props) {
                 <option value="">Seleccionar rol</option>
                 <option value="1">Almacenero</option>
                 <option value="2">Vendedor</option>
-                <option value="3">Ecommerce asistente</option>
+                <option value="3">{config.labels.entityName} asistente</option>
               </Selectx>
             </div>
 

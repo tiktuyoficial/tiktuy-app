@@ -1,6 +1,7 @@
 // src/shared/components/ecommerce/movimientos/VerMovimientoModal.tsx
 import Tittlex from "@/shared/common/Tittlex";
 import { Inputx, InputxNumber, InputxTextarea } from "@/shared/common/Inputx";
+import { useRoleUiConfig } from "@/auth/constants/useRoleUiConfig";
 import Buttonx from "@/shared/common/Buttonx";
 import type { Producto } from "@/services/ecommerce/producto/producto.types";
 import ImageUploadx from "@/shared/common/ImageUploadx";
@@ -38,6 +39,7 @@ const ESTADO_LABEL: Record<EstadoId, string> = {
 };
 
 export default function VerMovimientoModal({ open, onClose, data }: Props) {
+  const config = useRoleUiConfig();
   const [previewOpen, setPreviewOpen] = useState(false);
   const [previewSrc, setPreviewSrc] = useState<string | null>(null);
 
@@ -91,7 +93,7 @@ export default function VerMovimientoModal({ open, onClose, data }: Props) {
           variant="modal"
           icon="mdi:eye-outline"
           title="DETALLE PARA MOVIMIENTO"
-          description="Consulta los datos del producto antes de registrar el movimiento."
+          description={`Consulta los datos del ${config.labels.labelProducto.toLowerCase()} antes de registrar el movimiento.`}
         />
 
         <div className="flex flex-col gap-5">
@@ -106,7 +108,7 @@ export default function VerMovimientoModal({ open, onClose, data }: Props) {
             />
             <Inputx
               name="nombre_producto"
-              label="Nombre del Producto"
+              label={`Nombre del ${config.labels.labelProducto}`}
               value={nombre}
               readOnly
               disabled

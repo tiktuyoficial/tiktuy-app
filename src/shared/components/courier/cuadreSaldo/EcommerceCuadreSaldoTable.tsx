@@ -24,6 +24,7 @@ import Badgex from "@/shared/common/Badgex";
 import TableActionx from "@/shared/common/TableActionx";
 import Tittlex from "@/shared/common/Tittlex";
 import { useNotification } from "@/shared/context/notificacionesDeskop/useNotification";
+import { useRoleUiConfig } from "@/auth/constants/useRoleUiConfig";
 
 const formatPEN = (v: number) =>
   `S/. ${Number(v || 0).toLocaleString("es-PE", {
@@ -147,6 +148,7 @@ const isSelectableEstado = (estado?: AbonoEstado) => {
 };
 
 const EcommerceCuadreSaldoTable: React.FC<Props> = ({ token }) => {
+  const config = useRoleUiConfig();
   const { notify } = useNotification();
   // ==== sedes ====
   const [, setSedes] = useState<SedeCuadreItem[]>([]);
@@ -557,10 +559,10 @@ const EcommerceCuadreSaldoTable: React.FC<Props> = ({ token }) => {
     <div className="flex flex-col gap-5">
       {/* Barra superior */}
       <div className="flex items-center justify-between">
-        <Tittlex title="Ecommerce" variant="section" />
+        <Tittlex title={config.labels.tableEntityColumn} variant="section" />
         <Buttonx
           icon="iconoir:new-tab"
-          label="Abonar Ecommerce"
+          label={`Abonar ${config.labels.tableEntityColumn}`}
           variant="secondary"
           onClick={prepararAbonoMultiFecha}
           disabled={selectedFechas.length === 0 || loading}
@@ -572,15 +574,15 @@ const EcommerceCuadreSaldoTable: React.FC<Props> = ({ token }) => {
         {/* Ecommerce */}
         <Selectx
           id="f-ecommerce"
-          label="Ecommerce"
+          label={config.labels.tableEntityColumn}
           value={ecoId === "" ? "" : String(ecoId)}
           onChange={(e) =>
             setEcoId(e.target.value === "" ? "" : Number(e.target.value))
           }
-          placeholder="Seleccionar ecommerce"
+          placeholder={config.labels.tableEntityPlaceholder}
           className="w-full"
         >
-          <option value="">— Seleccionar ecommerce —</option>
+          <option value="">— {config.labels.tableEntityPlaceholder} —</option>
           {ecommerces.map((e) => (
             <option key={e.id} value={e.id}>
               {e.nombre}

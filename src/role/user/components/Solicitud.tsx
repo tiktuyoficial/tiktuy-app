@@ -24,7 +24,8 @@ import {
 
 type Msg = { type: 'ok' | 'err'; text: string } | null;
 
-type TipoSolicitud = 'courier' | 'ecommerce';
+// Tipos de solicitud incluyendo las simulaciones visuales frontend
+type TipoSolicitud = 'courier' | 'delivery' | 'ecommerce' | 'restaurante';
 
 export default function Solicitud() {
   const [tipo, setTipo] = useState<TipoSolicitud>('courier'); // selector
@@ -202,13 +203,18 @@ export default function Solicitud() {
     try {
       setLoading(true);
 
-      if (tipo === 'courier') {
-        const err = validateCourier(form);
+      if (tipo === 'courier' || tipo === 'delivery') {
+        const payload = {
+          ...form,
+          // Simulación visual: anexar tag para identificar Delivery en base de datos
+          nombre_comercial: tipo === 'delivery' ? `${form.nombre_comercial} [Delivery]`.trim() : form.nombre_comercial
+        };
+        const err = validateCourier(payload);
         if (err) {
           setMsg({ type: 'err', text: err });
           return;
         }
-        const res = await registrarSolicitudCourier(form);
+        const res = await registrarSolicitudCourier(payload);
         setMsg({ type: 'ok', text: res.message || 'Solicitud registrada correctamente.' });
 
         // limpiar formulario courier
@@ -228,12 +234,19 @@ export default function Solicitud() {
         });
         setCiudades([]);
       } else {
-        const err = validateEcommerce(formE);
+        const payloadE = {
+          ...formE,
+          // Simulación visual: forzar rubro como Restaurante
+          rubro: tipo === 'restaurante' ? 'Restaurante' : formE.rubro,
+          // Anexar tag para identificar Restaurante
+          nombre_comercial: tipo === 'restaurante' ? `${formE.nombre_comercial} [Restaurante]`.trim() : formE.nombre_comercial
+        };
+        const err = validateEcommerce(payloadE);
         if (err) {
           setMsg({ type: 'err', text: err });
           return;
         }
-        const res = await registrarSolicitudEcommerce(formE);
+        const res = await registrarSolicitudEcommerce(payloadE);
         setMsg({ type: 'ok', text: res.message || 'Solicitud registrada correctamente.' });
 
         // limpiar formulario ecommerce
@@ -322,27 +335,47 @@ export default function Solicitud() {
           onSubmit={onSubmit}
           className="w-full lg:max-w-[640px] rounded-2xl border border-[#99BCDA] p-6 lg:p-8 shadow-sm">
 
-          {/* Selector de tipo (tabs muy simples, sin cambiar el look & feel) */}
-          <div className="mb-5 flex gap-2">
+          {/* Selector de tipo (4 roles visuales en frontend) */}
+          <div className="mb-5 flex flex-wrap gap-2">
             <button
               type="button"
               onClick={() => setTipo('courier')}
-              className={`px-3 py-1.5 rounded-md border ${tipo === 'courier'
-                  ? 'bg-[#0057A3] text-white border-[#0057A3]'
-                  : 'bg-white text-[#0057A3] border-[#99BCDA]'
+              className={`px-4 py-2 rounded-md border text-sm font-semibold transition-all ${tipo === 'courier'
+                  ? 'bg-[#0057A3] text-white border-[#0057A3] shadow-sm'
+                  : 'bg-white text-[#0057A3] border-[#99BCDA] hover:bg-gray-50'
                 }`}
             >
               Courier
             </button>
             <button
               type="button"
+              onClick={() => setTipo('delivery')}
+              className={`px-4 py-2 rounded-md border text-sm font-semibold transition-all ${tipo === 'delivery'
+                  ? 'bg-emerald-600 text-white border-emerald-600 shadow-sm'
+                  : 'bg-white text-emerald-600 border-[#99BCDA] hover:bg-gray-50'
+                }`}
+            >
+              Delivery 
+            </button>
+            <button
+              type="button"
               onClick={() => setTipo('ecommerce')}
-              className={`px-3 py-1.5 rounded-md border ${tipo === 'ecommerce'
-                  ? 'bg-[#0057A3] text-white border-[#0057A3]'
-                  : 'bg-white text-[#0057A3] border-[#99BCDA]'
+              className={`px-4 py-2 rounded-md border text-sm font-semibold transition-all ${tipo === 'ecommerce'
+                  ? 'bg-[#0057A3] text-white border-[#0057A3] shadow-sm'
+                  : 'bg-white text-[#0057A3] border-[#99BCDA] hover:bg-gray-50'
                 }`}
             >
               Ecommerce
+            </button>
+            <button
+              type="button"
+              onClick={() => setTipo('restaurante')}
+              className={`px-4 py-2 rounded-md border text-sm font-semibold transition-all ${tipo === 'restaurante'
+                  ? 'bg-orange-500 text-white border-orange-500 shadow-sm'
+                  : 'bg-white text-orange-500 border-[#99BCDA] hover:bg-gray-50'
+                }`}
+            >
+              Restaurante 
             </button>
           </div>
 
@@ -366,7 +399,7 @@ export default function Solicitud() {
               </p>
             </div>
 
-            {tipo === 'courier' ? (
+            {tipo === 'courier' || tipo === 'delivery' ? (
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="flex flex-col gap-1">
                   <label className="text-sm text-gray-700">Nombres</label>
@@ -501,12 +534,12 @@ export default function Solicitud() {
               <p className="flex items-center gap-2 text-gray-800 font-semibold">
                 <GiCube className="text-[#0057A3]" />
                 {/*  Aqui podrias poner  que solo ecomer tenga el (Opcional), pero el courier no tenga esa opcion,sequeda haci*/}
-                {/* Hecho: solo Ecommerce muestra "(Opcional)" */}
-                Datos de la empresa{tipo === 'ecommerce' ? ' (Opcional)' : ''}
+                {/* Hecho: solo Ecommerce / Restaurante muestra "(Opcional)" */}
+                Datos de la empresa{tipo === 'ecommerce' || tipo === 'restaurante' ? ' (Opcional)' : ''}
               </p>
             </div>
 
-            {tipo === 'courier' ? (
+            {tipo === 'courier' || tipo === 'delivery' ? (
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="flex flex-col gap-1">
                   <label className="text-sm text-gray-700">Nombre Comercial</label>

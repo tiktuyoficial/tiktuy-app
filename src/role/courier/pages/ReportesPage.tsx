@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useRoleUiConfig } from "@/auth/constants/useRoleUiConfig";
 import Buttonx from "@/shared/common/Buttonx";
 import Tittlex from "@/shared/common/Tittlex";
 
@@ -8,6 +9,7 @@ import ReporteEntregasC from "@/shared/components/courier/reportes/ReporteEntreg
 type Vista = "ingresos" | "entregas";
 
 export default function ReportesCourierPage() {
+  const config = useRoleUiConfig();
   const [vista, setVista] = useState<Vista>(
     () => (localStorage.getItem("courier_reportes_vista") as Vista) || "entregas"
   );
@@ -17,8 +19,8 @@ export default function ReportesCourierPage() {
   }, [vista]);
 
   const descripcionVista = {
-    ingresos: "Reporte de ingresos generados por el courier.",
-    entregas: "Reporte de entregas realizadas por el courier.",
+    ingresos: `Reporte de ingresos generados por el ${config.labels.tableEntityColumn.toLowerCase()}.`,
+    entregas: `Reporte de entregas realizadas por el ${config.labels.tableEntityColumn.toLowerCase()}.`,
   } as const;
 
   return (
@@ -26,8 +28,8 @@ export default function ReportesCourierPage() {
       {/* HEADER */}
       <div className="flex justify-between items-end pb-5 border-b border-gray30">
         <Tittlex
-          title="Reportes Courier"
-          description="Visualiza el desempeño del courier"
+          title={config.labels.reportesTitle}
+          description={config.labels.reportesSubtitle}
         />
 
         <div className="flex gap-3 items-center">

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "@/auth/context";
+import { useRoleUiConfig } from "@/auth/constants/useRoleUiConfig";
 
 import Buttonx from "@/shared/common/Buttonx";
 import { Selectx, SelectxDate } from "@/shared/common/Selectx";
@@ -52,6 +53,7 @@ function EmptyState({
 
 export default function ReporteIngresos() {
   const { token } = useAuth();
+  const config = useRoleUiConfig();
 
   const [vista, setVista] = useState<VistaReporte>("diario");
   const [desde, setDesde] = useState(hoyISO());
@@ -203,7 +205,7 @@ export default function ReporteIngresos() {
                   className={[
                     "px-4 py-2 text-sm font-medium rounded-lg transition-colors",
                     active
-                      ? "bg-gray90 text-white shadow-sm"
+                      ? "bg-gray-900 text-white shadow-sm"
                       : "text-gray70 hover:bg-gray20",
                   ].join(" ")}
                 >
@@ -248,7 +250,7 @@ export default function ReporteIngresos() {
 
               <div className="w-full sm:w-auto sm:min-w-[220px] sm:max-w-[260px] min-w-0">
                 <Selectx
-                  label="Courier"
+                  label={config.labels.tableEntityColumn}
                   value={courierId}
                   onChange={(e) => setCourierId(e.target.value)}
                   className="w-full"
@@ -330,7 +332,7 @@ export default function ReporteIngresos() {
 
               <div className="w-full sm:w-auto sm:min-w-[220px] sm:max-w-[260px] min-w-0">
                 <Selectx
-                  label="Courier"
+                  label={config.labels.tableEntityColumn}
                   value={courierId}
                   onChange={(e) => setCourierId(e.target.value)}
                   className="w-full"
@@ -378,7 +380,7 @@ export default function ReporteIngresos() {
 
               <div className="w-full sm:w-auto sm:min-w-[220px] sm:max-w-[260px] min-w-0">
                 <Selectx
-                  label="Courier"
+                  label={config.labels.tableEntityColumn}
                   value={courierId}
                   onChange={(e) => setCourierId(e.target.value)}
                   className="w-full"
@@ -539,7 +541,7 @@ export default function ReporteIngresos() {
                 <EmptyState
                   icon="mdi:chart-line"
                   title="No hay datos para este período"
-                  desc="Prueba cambiando el rango (Diario) o ajustando el courier seleccionado."
+                  desc={`Prueba cambiando el rango (Diario) o ajustando el ${config.labels.tableEntityColumn.toLowerCase()} seleccionado.`}
                   heightClass="h-[300px]"
                 />
               )}

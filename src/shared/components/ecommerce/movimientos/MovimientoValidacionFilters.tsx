@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { FiSearch } from "react-icons/fi";
 import { MdClear } from "react-icons/md";
+import { useRoleUiConfig } from "@/auth/constants/useRoleUiConfig";
 
 interface Filters {
   estado: string;
@@ -13,6 +14,7 @@ interface Props {
 }
 
 export default function MovimientoValidacionFilters({ onFilterChange }: Props) {
+  const config = useRoleUiConfig();
   const [filters, setFilters] = useState<Filters>({
     estado: "",
     fecha_generacion: "",
@@ -76,7 +78,7 @@ export default function MovimientoValidacionFilters({ onFilterChange }: Props) {
             name="search"
             value={filters.search}
             onChange={handleChange}
-            placeholder="Buscar productos por nombre de producto o almacén"
+            placeholder={`Buscar ${config.labels.labelProductos.toLowerCase()} por nombre de ${config.labels.labelProducto.toLowerCase()} o ${config.labels.labelAlmacen.toLowerCase()}`}
             className="w-full border rounded pl-10 pr-4 py-2"
           />
         </div>

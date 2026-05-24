@@ -6,6 +6,7 @@ import Buttonx from "@/shared/common/Buttonx";
 import type { Producto } from "@/services/ecommerce/producto/producto.types";
 import ImageUploadx from "@/shared/common/ImageUploadx";
 import ImagePreviewModalx from "@/shared/common/ImagePreviewModalx";
+import { useRoleUiConfig } from "@/auth/constants/useRoleUiConfig";
 
 type Props = {
   onClose: () => void;
@@ -37,6 +38,7 @@ const ESTADO_LABEL: Record<EstadoId, string> = {
 };
 
 export default function ProductoVerModal({ onClose, data }: Props) {
+  const config = useRoleUiConfig();
   const [previewOpen, setPreviewOpen] = useState(false);
   const [previewSrc, setPreviewSrc] = useState<string | null>(null);
 
@@ -93,8 +95,8 @@ export default function ProductoVerModal({ onClose, data }: Props) {
         <Tittlex
           variant="modal"
           icon="vaadin:stock"
-          title="DETALLE DEL PRODUCTO"
-          description="Consulta toda la información registrada de este producto, incluyendo sus datos básicos, ubicación en almacén, stock y condiciones asociadas."
+          title={config.labels.modalVerProducto.toUpperCase()}
+          description={config.labels.modalVerProductoDesc}
         />
 
         <div className="flex flex-col gap-5">
@@ -112,7 +114,7 @@ export default function ProductoVerModal({ onClose, data }: Props) {
             <div className="flex-1 min-w-0">
               <Inputx
                 name="nombre_producto"
-                label="Nombre del Producto"
+                label={config.labels.labelNombreProducto}
                 value={nombre}
                 readOnly
                 disabled
@@ -226,7 +228,7 @@ export default function ProductoVerModal({ onClose, data }: Props) {
             <div className="flex-1 min-w-0">
               <Inputx
                 name="almacen"
-                label="Sede"
+                label={config.labels.labelAlmacen}
                 value={almacenLabel}
                 readOnly
                 disabled

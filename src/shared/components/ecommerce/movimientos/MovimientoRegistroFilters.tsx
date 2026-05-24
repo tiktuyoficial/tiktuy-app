@@ -7,6 +7,7 @@ import type { Almacenamiento } from "@/services/ecommerce/almacenamiento/almacen
 import { Selectx } from "@/shared/common/Selectx";
 import Buttonx from "@/shared/common/Buttonx";
 import { SearchInputx } from "@/shared/common/SearchInputx";
+import { useRoleUiConfig } from "@/auth/constants/useRoleUiConfig";
 
 export interface Filters {
   almacenamiento_id: string;
@@ -31,6 +32,7 @@ export default function MovimientoRegistroFilters({
   onNuevoMovimientoClick,
 }: Props) {
   const { token } = useAuth();
+  const config = useRoleUiConfig();
   const [categorias, setCategorias] = useState<Categoria[]>([]);
   const [almacenes, setAlmacenes] = useState<Almacenamiento[]>([]);
   const [filters, setFilters] = useState<Filters>({
@@ -112,7 +114,7 @@ export default function MovimientoRegistroFilters({
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-[1fr_1fr_1fr_auto] gap-4 text-sm items-end">
         {/* Almacén */}
         <Selectx
-          label="Almacén"
+          label={config.labels.labelAlmacen}
           value={filters.almacenamiento_id}
           onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
             setFilters((prev) => ({
@@ -214,7 +216,7 @@ export default function MovimientoRegistroFilters({
           <SearchInputx
             value={filters.search}
             onChange={handleChange}
-            placeholder="Buscar productos por nombre, descripción ó código."
+            placeholder={config.labels.searchProductoPlaceholder}
             className="w-full pl-10"
             name="search"
           />

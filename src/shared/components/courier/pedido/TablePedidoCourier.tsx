@@ -27,6 +27,7 @@ import { SearchInputx } from "@/shared/common/SearchInputx";
 import Tittlex from "@/shared/common/Tittlex";
 import TableActionx from "@/shared/common/TableActionx";
 import Badgex from "@/shared/common/Badgex";
+import { useRoleUiConfig } from "@/auth/constants/useRoleUiConfig";
 
 type View = "asignados" | "pendientes" | "terminados";
 
@@ -100,6 +101,7 @@ export default function TablePedidoCourier({
   /* paginación (server-side) */
   const [page, setPage] = useState(1);
   const [perPage] = useState(6);
+  const config = useRoleUiConfig();
 
   /*  filtros de FECHA (server-side) */
   const [desde, setDesde] = useState<string>(() => getTodayPEYYYYMMDD());
@@ -738,7 +740,7 @@ export default function TablePedidoCourier({
                   </th>
                   <th className="px-4 py-3 text-left">Fec. Entrega</th>
                   <th className="px-4 py-3 text-left">Distrito</th>
-                  <th className="px-4 py-3 text-left">Ecommerce</th>
+                  <th className="px-4 py-3 text-left">{config.labels.tableEntityColumn}</th>
                   <th className="px-4 py-3 text-left">Cliente</th>
                   <th className="px-4 py-3 text-left">Dirección de Entrega</th>
                   {(view === "pendientes") && (

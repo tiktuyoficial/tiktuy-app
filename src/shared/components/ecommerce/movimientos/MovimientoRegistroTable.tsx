@@ -9,6 +9,7 @@ import type {
 import type { Filters } from "./MovimientoRegistroFilters";
 import Badgex from "@/shared/common/Badgex";
 import TableActionx from "@/shared/common/TableActionx";
+import { useRoleUiConfig } from "@/auth/constants/useRoleUiConfig";
 
 interface Props {
   filters: Filters;
@@ -75,6 +76,7 @@ export default function MovimientoRegistroTable({
   refreshTrigger = 0,
 }: Props) {
   const { token } = useAuth();
+  const config = useRoleUiConfig();
 
   const [productos, setProductos] = useState<Producto[]>([]);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
@@ -267,8 +269,8 @@ export default function MovimientoRegistroTable({
               </th>
               <th />
               <th>Código</th>
-              <th>Producto</th>
-              <th>Sede</th>
+              <th>{config.labels.labelProducto}</th>
+              <th>{config.labels.labelAlmacen}</th>
               <th>Stock</th>
               <th className="text-right">Precio</th>
               <th className="text-center">Estado</th>

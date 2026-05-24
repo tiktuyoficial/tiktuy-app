@@ -10,6 +10,8 @@ import ModalConfirmAsociar from "./ModalConfirmAsociarAdmin";
 import ModalConfirmDesasociar from "./ModalConfirmDesasociarAdmin";
 import TableActionx from "@/shared/common/TableActionx";
 import Badgex from "@/shared/common/Badgex";
+// Simulación visual frontend: helper para limpiar tag [Delivery] y clasificar visualmente
+import { cleanBusinessName } from "@/auth/constants/roles";
 
 type Props = {
   data: SolicitudCourier[];
@@ -140,7 +142,8 @@ export default function TablePanelAdmin({
                 <th className="px-4 py-3 text-left">Departamento</th>
                 <th className="px-4 py-3 text-left">Ciudad</th>
                 <th className="px-4 py-3 text-left">Dirección</th>
-                <th className="px-4 py-3 text-left">Courier</th>
+                {/* Simulación visual frontend: columna muestra Courier o Delivery */}
+                <th className="px-4 py-3 text-left">Courier / Delivery</th>
                 <th className="px-4 py-3 text-left">Teléfono</th>
                 <th className="px-4 py-3 text-center">Estado</th>
                 <th className="px-4 py-3 text-center">Acciones</th>
@@ -181,7 +184,19 @@ export default function TablePanelAdmin({
                           {r.direccion ?? "-"}
                         </td>
                         <td className="px-4 py-3 text-gray70 font-[400]">
-                          {r.nombre_comercial ?? "-"}
+                          {/* Simulación visual frontend: clasificar Delivery o Courier según tag */}
+                          <div className="flex items-center gap-2">
+                            {r.nombre_comercial?.endsWith(" [Delivery]") ? (
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-100 text-emerald-700">
+                                Delivery
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-blue-100 text-blue-700">
+                                Courier
+                              </span>
+                            )}
+                            <span>{cleanBusinessName(r.nombre_comercial) || "-"}</span>
+                          </div>
                         </td>
                         <td className="px-4 py-3 text-gray70 font-[400]">
                           <div className="flex items-center gap-2">

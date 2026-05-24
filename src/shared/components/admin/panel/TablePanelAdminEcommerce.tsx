@@ -8,6 +8,7 @@ import ModalDetalleSolicitudAdminEcommerce from "./ModalDetalleSolicitudAdminEco
 
 import TableActionx from "@/shared/common/TableActionx";
 import Badgex from "@/shared/common/Badgex";
+// Simulación visual frontend: clasificación de Restaurante vs Ecommerce por rubro
 
 type Props = {
   data: SolicitudEcommerce[];
@@ -138,7 +139,8 @@ export default function TablePanelAdminEcommerce({
                 <th className="px-4 py-3 text-left">Ciudad</th>
                 <th className="px-4 py-3 text-left">Dirección</th>
                 <th className="px-4 py-3 text-left">Rubro</th>
-                <th className="px-4 py-3 text-left">Ecommerce</th>
+                {/* Simulación visual frontend: columna muestra Ecommerce o Restaurante */}
+                <th className="px-4 py-3 text-left">Ecommerce / Restaurante</th>
                 <th className="px-4 py-3 text-left">Teléfono</th>
                 <th className="px-4 py-3 text-center">Estado</th>
                 <th className="px-4 py-3 text-center">Acciones</th>
@@ -180,7 +182,19 @@ export default function TablePanelAdminEcommerce({
                           {r.rubro ?? "-"}
                         </td>
                         <td className="px-4 py-3 text-gray70 font-[400]">
-                          {r.ecommerce ?? "-"}
+                          {/* Simulación visual frontend: clasificar Restaurante o Ecommerce por rubro */}
+                          <div className="flex items-center gap-2">
+                            {r.rubro?.toLowerCase() === "restaurante" ? (
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-orange-100 text-orange-700">
+                                Restaurante
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-purple-100 text-purple-700">
+                                Ecommerce
+                              </span>
+                            )}
+                            <span>{r.ecommerce ?? "-"}</span>
+                          </div>
                         </td>
 
                         <td className="px-4 py-3 text-gray70 font-[400]">

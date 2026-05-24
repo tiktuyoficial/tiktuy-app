@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { useAuth } from "@/auth/context";
 import { fetchPedidoById } from "@/services/ecommerce/pedidos/pedidos.api";
 import type { Pedido } from "@/services/ecommerce/pedidos/pedidos.types";
+import { useRoleUiConfig } from "@/auth/constants/useRoleUiConfig";
 import Tittlex from "@/shared/common/Tittlex";
 import Buttonx from "@/shared/common/Buttonx";
 
@@ -20,6 +21,7 @@ export default function VerPedidoGeneradoModal({
   onEditar,
 }: Props) {
   const { token } = useAuth();
+  const config = useRoleUiConfig();
   const modalRef = useRef<HTMLDivElement>(null);
 
   const [loading, setLoading] = useState(false);
@@ -194,7 +196,7 @@ export default function VerPedidoGeneradoModal({
 
                     <div className="rounded-xl bg-slate-50 border border-slate-200 p-4">
                       <p className="text-xs font-semibold text-slate-500">
-                        Cantidad de productos
+                        Cantidad de {config.labels.labelProductos.toLowerCase()}
                       </p>
                       <p className="mt-1 text-sm font-bold text-slate-900 tabular-nums">
                         {String(cantProductos).padStart(2, "0")}
@@ -220,12 +222,12 @@ export default function VerPedidoGeneradoModal({
               {/* ===================== PRODUCTOS (tu lógica intacta) ===================== */}
               <div className="rounded-2xl border border-gray-200 bg-white shadow-sm overflow-hidden">
                 <div className="px-5 py-4 border-b border-gray-100">
-                  <div className="text-sm font-bold text-slate-900">Productos</div>
+                  <div className="text-sm font-bold text-slate-900">{config.labels.labelProductos}</div>
                   <div className="text-xs text-slate-500">Detalle por ítem</div>
                 </div>
 
                 <div className="bg-slate-100 px-4 py-3 text-xs font-semibold text-slate-700 grid grid-cols-[1fr_90px]">
-                  <span>Producto</span>
+                  <span>{config.labels.labelProducto}</span>
                   <span className="text-center">Cantidad</span>
                 </div>
 
@@ -255,7 +257,7 @@ export default function VerPedidoGeneradoModal({
 
                 {detalles.length === 0 && (
                   <div className="px-4 py-8 text-center text-slate-500">
-                    <div className="font-semibold">Sin productos en este pedido</div>
+                    <div className="font-semibold">Sin {config.labels.labelProductos.toLowerCase()} en este pedido</div>
                     <div className="text-xs text-slate-400 mt-1">
                       No hay ítems registrados para mostrar.
                     </div>

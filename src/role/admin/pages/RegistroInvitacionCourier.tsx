@@ -5,13 +5,18 @@ import { Icon } from "@iconify/react";
 import BackgroundImage from "@/assets/images/login-background.webp";
 import { confirmarPasswordInvitacion } from "@/services/admin/panel/admin-invite.api";
 import { Inputx } from "@/shared/common/Inputx";
+// Simulación visual frontend: helper para limpiar el tag [Delivery] del nombre
+import { cleanBusinessName } from "@/auth/constants/roles";
 
 export default function RegistroInvitacionCourier() {
   const navigate = useNavigate();
   const [sp] = useSearchParams();
 
   const token = sp.get("token") || "";
-  const name = sp.get("name") || "Tu cuenta";
+  const rawName = sp.get("name") || "Tu cuenta";
+  // Simulación visual frontend: detectar si es Delivery por el sufijo [Delivery]
+  const isDelivery = rawName.endsWith(" [Delivery]");
+  const name = cleanBusinessName(rawName) || "Tu cuenta";
 
   // UI state
   const [password, setPassword] = useState("");
@@ -105,21 +110,32 @@ export default function RegistroInvitacionCourier() {
         <div className="w-full bg-white rounded-3xl shadow-2xl p-6 md:p-8 space-y-6">
           {/* Header */}
           <div className="flex flex-col items-center text-center gap-2">
-            <div className="w-11 h-11 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-600">
-              <Icon icon="mdi:truck-delivery-outline" width={24} height={24} />
+            {/* Simulación visual frontend: ícono y colores varían según si es Delivery o Courier */}
+            <div className={`w-11 h-11 rounded-xl flex items-center justify-center ${
+              isDelivery
+                ? 'bg-emerald-500/10 text-emerald-600'
+                : 'bg-blue-500/10 text-blue-600'
+            }`}>
+              <Icon
+                icon={isDelivery ? "material-symbols:directions-bike" : "mdi:truck-delivery-outline"}
+                width={24}
+                height={24}
+              />
             </div>
 
             <h1 className="text-2xl md:text-3xl font-extrabold text-[#1A237E] tracking-wide">
-              Crear contraseña de courier
+              Crear contraseña de {isDelivery ? 'delivery' : 'courier'}
             </h1>
 
             <p className="text-xs md:text-sm text-gray-600 max-w-md">
-              Tu acceso como courier para{" "}
-              <span className="font-semibold text-blue-700">{name}</span> ha
+              Tu acceso como {isDelivery ? 'delivery' : 'courier'} para{" "}
+              <span className={`font-semibold ${isDelivery ? 'text-emerald-700' : 'text-blue-700'}`}>{name}</span> ha
               sido aprobado. Crea tu contraseña para activarlo.
             </p>
 
-            <p className="inline-flex items-center justify-center gap-2 px-3 py-1 rounded-full bg-emerald-50 text-[11px] font-semibold text-emerald-700 uppercase mt-1">
+            <p className={`inline-flex items-center justify-center gap-2 px-3 py-1 rounded-full text-[11px] font-semibold uppercase mt-1 ${
+              isDelivery ? 'bg-emerald-50 text-emerald-700' : 'bg-blue-50 text-blue-700'
+            }`}>
               Invitación aprobada · Paso final
             </p>
           </div>

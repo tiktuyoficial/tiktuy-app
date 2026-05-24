@@ -3,6 +3,7 @@ import { FaBoxOpen } from "react-icons/fa";
 import type { Producto } from "@/services/ecommerce/producto/producto.types";
 import Badgex from "@/shared/common/Badgex";
 import TableActionx from "@/shared/common/TableActionx";
+import { useRoleUiConfig } from "@/auth/constants/useRoleUiConfig";
 
 interface Props {
   productos: Producto[];
@@ -73,6 +74,8 @@ export default function StockTable({
   loading = false,
   total = 0,
 }: Props) {
+  const config = useRoleUiConfig();
+
   /* ---------------------------------------------------
      FILTRADO (NO PAGINA)
   ---------------------------------------------------- */
@@ -176,7 +179,7 @@ export default function StockTable({
   if (!productosFiltrados.length) {
     return (
       <div className="py-10 text-center text-gray-500 bg-white rounded shadow-default">
-        No hay productos activos con stock disponible.
+        No hay {config.labels.labelProductos.toLowerCase()} activos con stock disponible.
       </div>
     );
   }
@@ -203,8 +206,8 @@ export default function StockTable({
             <tr className="text-gray70 font-roboto font-medium">
               <th className="px-4 py-3">Imagen</th>
               <th className="px-4 py-3">Código</th>
-              <th className="px-4 py-3">Producto</th>
-              <th className="px-4 py-3">Almacén</th>
+              <th className="px-4 py-3">{config.labels.labelProducto}</th>
+              <th className="px-4 py-3">{config.labels.labelAlmacen}</th>
               <th className="px-4 py-3">Stock</th>
               <th className="px-4 py-3 text-right">Precio</th>
               <th className="px-4 py-3 text-center">Estado</th>

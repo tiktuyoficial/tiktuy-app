@@ -3,6 +3,7 @@ import { crearProducto } from '@/services/ecommerce/producto/producto.api';
 import { fetchCategorias } from '@/services/ecommerce/categoria/categoria.api';
 import { fetchAlmacenes } from '@/services/ecommerce/almacenamiento/almacenamiento.api';
 import { useAuth } from '@/auth/context';
+import { useRoleUiConfig } from '@/auth/constants/useRoleUiConfig';
 
 import type { Producto } from '@/services/ecommerce/producto/producto.types';
 import type { Categoria } from '@/services/ecommerce/categoria/categoria.types';
@@ -69,6 +70,7 @@ export default function ProductoFormModal({
   modo,
 }: Props) {
   const { token } = useAuth();
+  const config = useRoleUiConfig();
   const esModoVer = modo === 'ver';
 
   const [categorias, setCategorias] = useState<Categoria[]>([]);
@@ -163,18 +165,18 @@ export default function ProductoFormModal({
           <HiOutlineViewGridAdd />
           <span>
             {modo === 'editar'
-              ? 'EDITAR PRODUCTO'
+              ? config.labels.modalEditarProducto
               : modo === 'ver'
-              ? 'DETALLE DEL PRODUCTO'
-              : 'REGISTRAR NUEVO PRODUCTO'}
+              ? config.labels.modalVerProducto
+              : config.labels.modalNuevoProducto}
           </span>
         </h2>
         <p className="text-sm text-gray-500 mt-1">
           {modo === 'editar'
-            ? 'Modifica la información del producto existente.'
+            ? config.labels.modalEditarProductoDesc
             : modo === 'ver'
-            ? 'Consulta todos los datos registrados de este producto.'
-            : 'Registra un nuevo producto en tu inventario especificando su información básica.'}
+            ? config.labels.modalVerProductoDesc
+            : config.labels.modalNuevoProductoDesc}
         </p>
 
         <form onSubmit={handleSubmit} className="mt-6 space-y-4">
@@ -190,10 +192,10 @@ export default function ProductoFormModal({
             />
             <Input
               name="nombre_producto"
-              label="Nombre del Producto"
+              label={config.labels.labelNombreProducto}
               value={form.nombre_producto}
               onChange={handleChange}
-              placeholder="Ej. Zapatos de Cuero"
+              placeholder={config.labels.placeholderNombreProducto}
               required
               readOnly={esModoVer}
             />
@@ -204,7 +206,7 @@ export default function ProductoFormModal({
             label="Descripción"
             value={form.descripcion}
             onChange={handleChange}
-            placeholder="Ej. Zapato de vestir, tipo Oxford"
+            placeholder={config.labels.placeholderDescProducto}
             readOnly={esModoVer}
           />
 
@@ -223,7 +225,7 @@ export default function ProductoFormModal({
           {/* Almacén (nativo) */}
           <SelectNative<Almacenamiento, 'nombre_almacen'>
             name="almacenamiento_id"
-            label="Almacén"
+            label={config.labels.labelAlmacen}
             value={form.almacenamiento_id}
             onChange={handleChange}
             options={almacenes}

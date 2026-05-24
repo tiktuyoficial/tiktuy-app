@@ -3,6 +3,7 @@ import { fetchPedidos } from "@/services/ecommerce/pedidos/pedidos.api";
 import type { Pedido } from "@/services/ecommerce/pedidos/pedidos.types";
 import TableActionx from "@/shared/common/TableActionx";
 import { useEffect, useMemo, useState } from "react";
+import { useRoleUiConfig } from "@/auth/constants/useRoleUiConfig";
 
 type Filtros = {
   courier: string;
@@ -25,6 +26,7 @@ export default function PedidosTableGenerado({
   refreshKey,
 }: PedidosTableGeneradoProps) {
   const { token } = useAuth();
+  const config = useRoleUiConfig();
 
   const PAGE_SIZE = 6;
   const [page, setPage] = useState(1);
@@ -135,9 +137,9 @@ export default function PedidosTableGenerado({
         <thead className="bg-[#E5E7EB]">
           <tr className="text-gray70 font-medium">
             <th className="px-2 py-3 text-center">Fec. Entrega</th>
-            <th className="px-4 py-3 text-left">Courier</th>
+            <th className="px-4 py-3 text-left">{config.labels.tableEntityColumn}</th>
             <th className="px-4 py-3 text-left">Cliente</th>
-            <th className="px-4 py-3 text-left">Producto</th>
+            <th className="px-4 py-3 text-left">{config.labels.labelProducto}</th>
             <th className="px-4 py-3 text-center">Cantidad</th>
             <th className="px-4 py-3 text-center">Monto</th>
             <th className="px-4 py-3 text-center">Acciones</th>

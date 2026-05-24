@@ -310,6 +310,8 @@ export default function RegistroInvitacionPage() {
     tipoQS === "motorizado" ||
     tipoQS === "repartidor";
 
+  const isRestaurante = tipoQS === "restaurante" || /registro-invitacion-restaurante/.test(path);
+
   // Estado UI
   const [step, setStep] = useState<StepValue>(STEP.One);
   const [loading, setLoading] = useState(false);
@@ -425,9 +427,14 @@ export default function RegistroInvitacionPage() {
           );
         }
       } else {
+        const finalNombreComercial = (isRestaurante && !formE.nombre_comercial.trim().endsWith("[Restaurante]")) 
+          ? `${formE.nombre_comercial.trim()} [Restaurante]` 
+          : formE.nombre_comercial.trim();
+
         const payload: RegistroInvitacionPayload = {
           token,
           ...formE,
+          nombre_comercial: finalNombreComercial,
           confirmar_contrasena: confirmPassword,
         };
 
@@ -519,7 +526,7 @@ export default function RegistroInvitacionPage() {
         {/* Header */}
         <div className="flex flex-col gap-2 text-center">
           <h1 className="text-3xl md:text-4xl font-extrabold tracking-wide text-[#1A237E] uppercase">
-            {isMotorizado ? "Registro de Motorizado" : "Registro de Ecommerce"}
+            {isMotorizado ? "Registro de Motorizado" : isRestaurante ? "Registro de Restaurante" : "Registro de Ecommerce"}
           </h1>
           <p className="text-sm md:text-base text-gray-500">
             Completa los pasos para finalizar tu registro.

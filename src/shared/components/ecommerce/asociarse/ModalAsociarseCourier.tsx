@@ -6,6 +6,7 @@ import type {
   NuevaRelacionInput,
 } from "@/services/ecommerce/ecommerceCourier.types";
 import Buttonx from "@/shared/common/Buttonx";
+import { useRoleUiConfig } from "@/auth/constants/useRoleUiConfig";
 
 export type ModalMode = "view" | "associate" | "desassociate";
 
@@ -38,6 +39,7 @@ export function ModalAsociarseCourier({
   const [confirmoDesasociar, setConfirmoDesasociar] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [errMsg, setErrMsg] = useState("");
+  const config = useRoleUiConfig();
 
   if (!open) return null;
 
@@ -133,7 +135,7 @@ export function ModalAsociarseCourier({
           <div className="flex items-start gap-4 pr-10">
             {/* Avatar */}
             <div
-              className="h-12 w-12 rounded-2xl bg-indigo-600 text-white grid place-items-center font-extrabold"
+              className={`h-12 w-12 rounded-2xl ${config.theme.primaryColor} text-white grid place-items-center font-extrabold`}
               aria-hidden
             >
               {entry.nombre_comercial?.[0]?.toUpperCase() ?? "C"}
@@ -159,7 +161,7 @@ export function ModalAsociarseCourier({
 
               <p className="mt-2 text-[13px] text-gray60 leading-relaxed">
                 {isDesassociate
-                  ? "Vas a cortar la relación actual con este courier."
+                  ? `Vas a cortar la relación actual con este ${config.labels.tableEntityColumn.toLowerCase()}.`
                   : "Confirma para asociarte y acceder a los beneficios."}
               </p>
             </div>
@@ -251,7 +253,7 @@ export function ModalAsociarseCourier({
                 />
                 <span>
                   Confirmo que quiero asociarme{" "}
-                  <b>{sedeInfo.isSede ? "con esta sede" : "con este courier"}</b>.
+                  <b>{sedeInfo.isSede ? "con esta sede" : `con este ${config.labels.tableEntityColumn.toLowerCase()}`}</b>.
                 </span>
               </label>
             </div>
@@ -265,7 +267,7 @@ export function ModalAsociarseCourier({
               </p>
 
               <p className="text-[13px] text-red-800/90">
-                Esta acción puede afectar tus operaciones con este courier.
+                Esta acción puede afectar tus operaciones con este {config.labels.tableEntityColumn.toLowerCase()}.
               </p>
 
               <label className="mt-3 flex items-start gap-3 text-[13px] text-red-900">

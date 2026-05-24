@@ -2,6 +2,7 @@ import type { JSX } from 'react';
 import { Icon } from '@iconify/react';
 import { FaUserShield, FaMotorcycle } from 'react-icons/fa';
 
+// Configuración visual premium para los roles en la interfaz (simulaciones visuales frontend)
 export const roleConfigs: Record<
   string,
   { label: string; icon: JSX.Element; bg: string; text: string }
@@ -18,11 +19,23 @@ export const roleConfigs: Record<
     bg: 'bg-[#F3E8FF]',
     text: 'text-[#6B21A8]',
   },
+  restaurante: {
+    label: 'Restaurante',
+    icon: <Icon icon="carbon:restaurant" width="12" height="12" />,
+    bg: 'bg-orange-100',
+    text: 'text-orange-600',
+  },
   courier: {
     label: 'Courier',
     icon: <Icon icon="clarity:truck-line" width="12" height="12" />,
     bg: 'bg-blue-100',
     text: 'text-blue-600',
+  },
+  delivery: {
+    label: 'Delivery',
+    icon: <Icon icon="material-symbols:directions-bike" width="12" height="12" />,
+    bg: 'bg-emerald-100',
+    text: 'text-emerald-600',
   },
   motorizado: {
     label: 'Motorizado',

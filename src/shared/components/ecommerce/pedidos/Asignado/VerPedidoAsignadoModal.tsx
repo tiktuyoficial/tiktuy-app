@@ -6,6 +6,7 @@ import { useAuth } from "@/auth/context";
 import Tittlex from "@/shared/common/Tittlex";
 import { Icon } from "@iconify/react";
 import Buttonx from "@/shared/common/Buttonx";
+import { useRoleUiConfig } from "@/auth/constants/useRoleUiConfig";
 
 interface Props {
   isOpen: boolean;
@@ -21,6 +22,7 @@ export default function VerPedidoAsignadoModal({
   pedidoId,
 }: Props) {
   const { token } = useAuth();
+  const config = useRoleUiConfig();
   const modalRef = useRef<HTMLDivElement>(null);
 
   const [pedido, setPedido] = useState<Pedido | null>(null);
@@ -203,7 +205,7 @@ export default function VerPedidoAsignadoModal({
                       className="text-lg text-gray-400 mt-px shrink-0"
                     />
                     <div className="min-w-0">
-                      <div className="text-[11px] text-gray-500">Courier Asignado</div>
+                      <div className="text-[11px] text-gray-500">{config.labels.tableEntityColumn} Asignado</div>
                       <div className="text-sm font-medium text-gray-800 break-words">
                         {courier}
                       </div>
@@ -246,7 +248,7 @@ export default function VerPedidoAsignadoModal({
                 {/* Productos */}
                 <div className="rounded-md bg-gray10 ring-1 ring-gray20 p-3">
                   <div className="flex items-center justify-between">
-                    <span className="text-[11px] text-gray-500">Productos</span>
+                    <span className="text-[11px] text-gray-500">{config.labels.labelProductos}</span>
                     <Icon icon="mdi:cart-outline" className="text-lg text-gray-400" />
                   </div>
                   <div className="mt-1 text-lg font-semibold text-gray-900">
@@ -263,7 +265,7 @@ export default function VerPedidoAsignadoModal({
                 <thead className="bg-gray20">
                   <tr>
                     <th className="px-3 w-full py-2 font-normal text-left">
-                      Producto
+                      {config.labels.labelProducto}
                     </th>
                     <th className="px-3 w-12 py-2 font-normal text-right">
                       Cant.

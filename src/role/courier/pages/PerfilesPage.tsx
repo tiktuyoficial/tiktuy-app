@@ -1,5 +1,5 @@
-// src/app/(courier)/perfiles/page.tsx
 import { useCallback, useEffect, useState } from "react";
+import { useRoleUiConfig } from "@/auth/constants/useRoleUiConfig";
 import { useAuth } from "@/auth/context";
 import { fetchPerfilTrabajadores } from "@/services/ecommerce/perfiles/perfilesTrabajador.api";
 import type { PerfilTrabajador } from "@/services/ecommerce/perfiles/perfilesTrabajador.types";
@@ -10,6 +10,7 @@ import Buttonx from "@/shared/common/Buttonx";
 
 export default function PerfilesPage() {
   const { token } = useAuth();
+  const config = useRoleUiConfig();
   const [data, setData] = useState<PerfilTrabajador[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [modalOpen, setModalOpen] = useState(false);
@@ -35,12 +36,12 @@ export default function PerfilesPage() {
     <section className="mt-8">
       <div className="flex justify-between items-end">
         <Tittlex
-          title="Perfiles"
-          description="Aquí podrá registrar los encargados específicos por módulos."
+          title={config.labels.perfilesTitle}
+          description={config.labels.perfilesSubtitle}
         />
         <Buttonx
             icon="ci:user"
-            label="Nuevo Perfil"
+            label={config.labels.perfilesCreateButton}
             variant="secondary"
             onClick={() => setModalOpen(true)}
           />

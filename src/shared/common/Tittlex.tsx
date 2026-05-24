@@ -27,7 +27,7 @@ const Tittlex: React.FC<TittlexProps> = ({
     return (
       <div className={`flex flex-col gap-4 items-start ${className}`}>
         <div className="w-full h-[32px] flex items-center gap-2.5">
-          {icon && <Icon icon={icon} width={28} height={28} color="#1E3A8A" />}
+          {icon && <Icon icon={icon} width={28} height={28} className="text-primary" />}
           <h2 className="font-roboto font-semibold text-xl text-primary">
             {title}
           </h2>

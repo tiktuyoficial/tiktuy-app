@@ -3,6 +3,7 @@ import { Icon } from "@iconify/react";
 import { useAuth } from "@/auth/context/useAuth";
 import { FaSignOutAlt } from "react-icons/fa";
 import { useEffect, useState } from "react";
+import { useRoleUiConfig } from "@/auth/constants/useRoleUiConfig";
 
 import LOGOTIKTUY from "@/assets/logos/LOGO-TIKTUY-SIDEBAR.svg";
 import type { JSX } from "react";
@@ -15,6 +16,7 @@ interface Props {
 
 export default function Sidebar({ isOpen, toggle }: Props) {
   const { user, logout } = useAuth();
+  const configUi = useRoleUiConfig();
   const navigate = useNavigate();
 
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
@@ -89,13 +91,13 @@ export default function Sidebar({ isOpen, toggle }: Props) {
       */
       {
         to: "/stock",
-        label: "Stock de Productos",
+        label: configUi.labels.sidebarStock,
         icon: <Icon icon="vaadin:stock" width="24" height="24" />,
         modulo: "stock",
       },
       {
         to: "/movimientos",
-        label: "Movimientos",
+        label: configUi.labels.movimientosTitle,
         icon: (
           <Icon icon="icon-park-outline:cycle-movement" width="24" height="24" />
         ),
@@ -103,7 +105,7 @@ export default function Sidebar({ isOpen, toggle }: Props) {
       },
       {
         to: "/pedidos",
-        label: "Gestión de Pedidos",
+        label: configUi.labels.sidebarPedidos,
         icon: <Icon icon="lsicon:shopping-cart-filled" width="24" height="24" />,
         modulo: "pedidos",
       },
@@ -133,21 +135,27 @@ export default function Sidebar({ isOpen, toggle }: Props) {
         icon: <Icon icon="lucide:layout-panel-top" width="24" height="24" />,
       },
       {
+        to: "/almacen",
+        label: "Sede",
+        icon: <Icon icon="hugeicons:warehouse" width="24" height="24" />,
+        modulo: "pedidos",
+      },
+      {
         to: "/stock",
-        label: "Stock de Productos",
+        label: configUi.labels.sidebarStock,
         icon: <Icon icon="vaadin:stock" width="24" height="24" />,
         modulo: "stock",
       },
       {
         to: "/movimientos",
-        label: "Movimientos",
+        label: configUi.labels.movimientosTitle,
         icon: (
           <Icon icon="icon-park-outline:cycle-movement" width="24" height="24" />
         ),
       },
       {
         to: "/pedidos",
-        label: "Gestión de Pedidos",
+        label: configUi.labels.sidebarPedidos,
         icon: <Icon icon="lsicon:shopping-cart-filled" width="24" height="24" />,
       },
       {
@@ -157,7 +165,7 @@ export default function Sidebar({ isOpen, toggle }: Props) {
       },
       {
         to: "/cuadresaldo",
-        label: "Cuadre de Saldos",
+        label: configUi.labels.cuadreTitle,
         icon: <Icon icon="prime:wallet" width="24" height="24" />,
       },
       /*
@@ -172,12 +180,6 @@ export default function Sidebar({ isOpen, toggle }: Props) {
         label: "Reportes",
         icon: <Icon icon="carbon:report-data" width="24" height="24" />,
       },
-      {
-        to: "/almacen",
-        label: "Sede",
-        icon: <Icon icon="hugeicons:warehouse" width="24" height="24" />,
-        modulo: "pedidos",
-      },
     ],
 
     motorizado: [
@@ -188,7 +190,7 @@ export default function Sidebar({ isOpen, toggle }: Props) {
       },
       {
         to: "/pedidos",
-        label: "Gestión de Pedidos",
+        label: configUi.labels.sidebarPedidos,
         icon: <Icon icon="lsicon:shopping-cart-filled" width="24" height="24" />,
       },
       {
@@ -235,7 +237,7 @@ export default function Sidebar({ isOpen, toggle }: Props) {
       },
       {
         to: "/stock",
-        label: "Stock de productos",
+        label: configUi.labels.sidebarStock,
         icon: <Icon icon="vaadin:stock" width="24" height="24" />,
         modulo: "stock",
       },
@@ -249,7 +251,7 @@ export default function Sidebar({ isOpen, toggle }: Props) {
       },
       {
         to: "/pedidos",
-        label: "Gestión de Pedidos",
+        label: configUi.labels.sidebarPedidos,
         icon: <Icon icon="lsicon:shopping-cart-filled" width="24" height="24" />,
         modulo: "pedidos",
       },
@@ -344,7 +346,7 @@ export default function Sidebar({ isOpen, toggle }: Props) {
               aria-expanded={isOpen}
               className={[
                 "grid place-items-center",
-                "text-primary",
+                "text-[#1E3A8A]",
                 "hover:bg-gray-100/80 active:bg-gray-100",
                 "transition-colors duration-200",
                 "focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1E3A8A]/25",
@@ -382,8 +384,8 @@ export default function Sidebar({ isOpen, toggle }: Props) {
                       "transition-[grid-template-columns] duration-500 motion-reduce:transition-none",
                       ease,
                       "transition-colors",
-                      "text-primary",
-                      isActive ? "bg-[#EEF4FF]" : "hover:bg-gray-100/70",
+                      "text-[#1E3A8A]",
+                      isActive ? configUi.theme.sidebarActiveBg : "hover:bg-gray-100/70",
                     ].join(" ")
                   }
                 >
@@ -393,7 +395,7 @@ export default function Sidebar({ isOpen, toggle }: Props) {
                       <span
                         className={[
                           "absolute left-0 top-1/2 -translate-y-1/2",
-                          "h-6 w-1 rounded-r-full bg-[#1E3A8A]",
+                          "h-6 w-1 rounded-r-full", configUi.theme.sidebarActiveBar,
                           "transition-opacity duration-200",
                           isActive
                             ? "opacity-100"
@@ -407,8 +409,8 @@ export default function Sidebar({ isOpen, toggle }: Props) {
                           "grid place-items-center h-9 w-9 rounded-lg",
                           "transition-colors duration-200",
                           isActive
-                            ? "bg-[#1E3A8A]/10"
-                            : "group-hover:bg-[#1E3A8A]/8",
+                            ? configUi.theme.sidebarIconActiveBg
+                            : configUi.theme.sidebarIconHoverBg,
                         ].join(" ")}
                       >
                         <span className="text-[20px] leading-none flex items-center justify-center [&_svg]:w-5 [&_svg]:h-5">

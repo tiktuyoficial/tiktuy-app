@@ -5,6 +5,7 @@ import type { Pedido } from "@/services/ecommerce/pedidos/pedidos.types";
 import { useAuth } from "@/auth/context";
 import Tittlex from "@/shared/common/Tittlex";
 import { Icon } from "@iconify/react";
+import { useRoleUiConfig } from "@/auth/constants/useRoleUiConfig";
 
 interface Props {
   isOpen: boolean;
@@ -35,6 +36,7 @@ function formatFechaPE(fecha: string | null | undefined) {
 
 export default function VerPedidoModal({ isOpen, onClose, pedidoId }: Props) {
   const { token } = useAuth();
+  const config = useRoleUiConfig();
   const modalRef = useRef<HTMLDivElement>(null);
 
   const [pedido, setPedido] = useState<Pedido | null>(null);
@@ -208,7 +210,7 @@ export default function VerPedidoModal({ isOpen, onClose, pedidoId }: Props) {
                   {/* Productos */}
                   <div className="rounded-md bg-gray10 ring-1 ring-gray20 p-3">
                     <div className="flex items-center justify-between">
-                      <span className="text-[11px] text-gray-500">Productos</span>
+                      <span className="text-[11px] text-gray-500">{config.labels.labelProductos}</span>
                       <Icon icon="mdi:cart-outline" className="text-lg text-gray-400" />
                     </div>
                     <div className="mt-1 text-lg font-semibold text-gray-900">
@@ -225,7 +227,7 @@ export default function VerPedidoModal({ isOpen, onClose, pedidoId }: Props) {
                   <thead className="bg-gray20">
                     <tr>
                       <th className="px-3 w-full py-2 font-normal text-left">
-                        Producto
+                        {config.labels.labelProducto}
                       </th>
                       <th className="px-3 w-12 py-2 font-normal text-right">
                         Cant.

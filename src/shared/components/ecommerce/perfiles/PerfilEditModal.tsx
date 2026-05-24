@@ -7,6 +7,7 @@ import Tittlex from "@/shared/common/Tittlex";
 import Buttonx from "@/shared/common/Buttonx";
 import { Inputx, InputxPhone } from "@/shared/common/Inputx";
 import { Selectx } from "@/shared/common/Selectx";
+import { useRoleUiConfig } from "@/auth/constants/useRoleUiConfig";
 
 interface Props {
   isOpen: boolean;
@@ -63,6 +64,7 @@ export default function PerfilEditModal({
   trabajador,
   onUpdated,
 }: Props) {
+  const config = useRoleUiConfig();
   const [form, setForm] = useState({
     nombre: "",
     apellido: "",
@@ -293,7 +295,7 @@ export default function PerfilEditModal({
                 <option value="">Seleccionar rol</option>
                 <option value="1">Almacenero</option>
                 <option value="2">Vendedor</option>
-                <option value="3">Ecommerce asistente</option>
+                <option value="3">{config.labels.entityName} asistente</option>
               </Selectx>
             </div>
 

@@ -156,17 +156,18 @@ export default function AdminHomePage() {
           title="Panel de Control"
           description={
             tab === "courier"
-              ? "Monitoreo de asociación con couriers por ciudades"
-              : "Monitoreo de solicitudes de ecommerces"
+              // Simulación visual frontend: mostrar Delivery y Restaurante en el panel admin
+              ? "Monitoreo de asociación con Couriers y Deliveries por ciudades"
+              : "Monitoreo de solicitudes de Ecommerces y Restaurantes"
           }
         />
 
         {/* Botonera */}
         <div className="flex items-center gap-3">
           <Buttonx
-            label="Courier"
+            label="Courier / Delivery"
             icon="mdi:package-variant-closed"
-            title="Ver solicitudes de Courier"
+            title="Ver solicitudes de Courier y Delivery"
             variant={tab === "courier" ? "secondary" : "tertiary"}
             onClick={() => {
               setTab("courier");
@@ -177,9 +178,9 @@ export default function AdminHomePage() {
           <div className="w-px h-10 bg-gray-200" />
 
           <Buttonx
-            label="Ecommerce"
+            label="Ecommerce / Restaurante"
             icon="mdi:storefront-outline"
-            title="Ver solicitudes de Ecommerce"
+            title="Ver solicitudes de Ecommerce y Restaurante"
             variant={tab === "ecommerce" ? "secondary" : "tertiary"}
             onClick={() => {
               setTab("ecommerce");

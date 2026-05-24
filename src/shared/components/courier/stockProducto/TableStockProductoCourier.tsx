@@ -5,8 +5,7 @@ import type { Producto } from "@/services/courier/producto/productoCourier.type"
 import type { StockFilters } from "@/role/courier/pages/StockProducto";
 import Badgex from "@/shared/common/Badgex";
 import TableActionx from "@/shared/common/TableActionx";
-
-// ---- utilidades
+import { useRoleUiConfig } from "@/auth/constants/useRoleUiConfig";
 function toNumber(n: unknown) {
   if (n == null) return 0;
   if (typeof n === "number") return n;
@@ -60,6 +59,7 @@ export default function TableStockProductoCourier({
   error,
   onView,
 }: Props) {
+  const config = useRoleUiConfig();
   const [page, setPage] = useState(1);
 
   // Filtros + ordenamiento
@@ -234,8 +234,8 @@ export default function TableStockProductoCourier({
                 <tr className="text-gray70 font-roboto font-medium">
                   <th className="px-4 py-3 text-left"></th>
                   <th className="px-4 py-3 text-left">Código</th>
-                  <th className="px-4 py-3 text-left">Producto</th>
-                  <th className="px-4 py-3 text-left">Ecommerce</th>
+                  <th className="px-4 py-3 text-left">{config.labels.labelProducto}</th>
+                  <th className="px-4 py-3 text-left">{config.labels.tableEntityColumn}</th>
                   <th className="px-4 py-3 text-left">Stock</th>
                   <th className="px-4 py-3 text-right">Precio</th>
                   <th className="px-4 py-3 text-center">Estado</th>
@@ -250,7 +250,7 @@ export default function TableStockProductoCourier({
                       colSpan={8}
                       className="px-4 py-4 text-center text-gray70 italic"
                     >
-                      No hay productos para mostrar.
+                      No hay {config.labels.labelProductos.toLowerCase()} para mostrar.
                     </td>
                   </tr>
                 ) : (

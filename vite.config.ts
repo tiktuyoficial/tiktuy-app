@@ -9,7 +9,7 @@ export default defineConfig(({ mode }) => ({
   ],
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, 'src'), 
+      '@': path.resolve(__dirname, 'src'), // permite usar @/ en imports
     },
   },
   server: {
@@ -37,14 +37,17 @@ export default defineConfig(({ mode }) => ({
         changeOrigin: true,
         secure: true,
       },
-      // ejemplo mas rutas:
+      // si luego quieres más rutas:
       // '/pedido': { target: 'https://...', changeOrigin: true },
       // '/producto': { target: 'https://...', changeOrigin: true },
     },
   },
   build: {
+    //  Solo genera source maps en desarrollo
     sourcemap: mode === 'development',
-    minify: 'esbuild',
+
+    // Opcional: optimización adicional en producción
+    minify: 'esbuild', // o 'terser' si quieres compresión más avanzada
     target: 'esnext',
     outDir: 'dist',
     emptyOutDir: true,

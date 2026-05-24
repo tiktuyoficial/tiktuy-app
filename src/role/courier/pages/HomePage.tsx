@@ -7,11 +7,13 @@ import PanelControlRegistroEcommerce from "@/shared/components/courier/panelCont
 import PanelControlRegistroRepartidor from "@/shared/components/courier/panelControl/PanelControlRegistroRepartidor";
 import Tittlex from "@/shared/common/Tittlex";
 import Buttonx from "@/shared/common/Buttonx";
+import { useRoleUiConfig } from "@/auth/constants/useRoleUiConfig";
 
 export default function CourierHomePage() {
   const [activeTab, setActiveTab] = useState<"ecommerce" | "motorizado">(
     "ecommerce"
   );
+  const config = useRoleUiConfig();
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [reloadKey, setReloadKey] = useState(0);
@@ -25,7 +27,7 @@ export default function CourierHomePage() {
   const openModal = useCallback(() => setIsModalOpen(true), []);
   const closeModal = useCallback(() => setIsModalOpen(false), []);
 
-  const sectionTitle = activeTab === "ecommerce" ? "Ecommerce" : "Repartidor";
+  const sectionTitle = activeTab === "ecommerce" ? config.labels.tableEntityColumn : "Repartidor";
   const sectionSubtitle =
     activeTab === "ecommerce"
       ? "Asociados con nuestra empresa"
@@ -36,14 +38,14 @@ export default function CourierHomePage() {
       {/* Encabezado y Tabs */}
       <div className="flex justify-between items-center pb-5 border-b border-gray30">
         <Tittlex
-          title="Panel de Control"
-          description="Monitoreo de convenios y repartidores"
+          title={config.labels.dashboardTitle}
+          description={config.labels.dashboardSubtitle}
         />
 
         <div className="flex gap-3">
           {/* Toggle Ecommerce */}
           <Buttonx
-            label="Ecommerce"
+            label={config.labels.tableEntityColumn}
             icon="carbon:task-complete"
             variant={activeTab === "ecommerce" ? "secondary" : "tertiary"}
             onClick={() => setActiveTab("ecommerce")}
@@ -86,7 +88,7 @@ export default function CourierHomePage() {
             icon="mdi:plus-box-outline"
             label={
               activeTab === "ecommerce"
-                ? "Registrar Ecommerce"
+                ? `Registrar ${config.labels.tableEntityColumn}`
                 : "Registrar Repartidor"
             }
             variant="secondary"

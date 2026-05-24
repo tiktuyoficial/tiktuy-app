@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { useRoleUiConfig } from "@/auth/constants/useRoleUiConfig";
 import AnimatedExcelMenu from "@/shared/components/ecommerce/AnimatedExcelMenu";
 import StockFilters, {
   type StockFilterValue,
@@ -31,6 +32,7 @@ const PER_PAGE = 5;
 
 export default function StockPage() {
   const { token } = useAuth();
+  const config = useRoleUiConfig();
 
   // ---------------- PAGINACIÓN ----------------
   const [page, setPage] = useState(1);
@@ -202,8 +204,8 @@ export default function StockPage() {
     <section className="mt-8 space-y-6">
       <div className="flex flex-col gap-3 sm:flex-row sm:justify-between sm:items-end">
         <Tittlex
-          title="Stock de Productos"
-          description="Control de Stock y Movimientos"
+          title={config.labels.stockTitle}
+          description={config.labels.stockSubtitle}
         />
 
         <div className="flex gap-2 items-end">
@@ -220,7 +222,7 @@ export default function StockPage() {
           </ImportExcelFlow>
 
           <Buttonx
-            label="Nuevo Producto"
+            label={config.labels.stockCreateButton}
             icon="tabler:cube-plus"
             variant="secondary"
             onClick={() => setOpenCrear(true)}

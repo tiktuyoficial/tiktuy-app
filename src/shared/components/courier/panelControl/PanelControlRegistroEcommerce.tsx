@@ -7,6 +7,7 @@ import type { RegistroManualPayload } from "@/services/courier/panel_control/pan
 import Tittlex from "@/shared/common/Tittlex";
 import { Inputx, InputxPhone } from "@/shared/common/Inputx";
 import Buttonx from "@/shared/common/Buttonx";
+import { useRoleUiConfig } from "@/auth/constants/useRoleUiConfig";
 
 interface Props {
   onClose: () => void;
@@ -26,6 +27,7 @@ const initialForm: RegistroManualPayload = {
 };
 
 export default function PanelControlRegistroEcommerce({ onClose }: Props) {
+  const config = useRoleUiConfig();
   const [form, setForm] = useState<RegistroManualPayload>(initialForm);
   const [phoneLocal, setPhoneLocal] = useState<string>(""); // solo dígitos después del +51
   const [loading, setLoading] = useState(false);
@@ -55,8 +57,15 @@ export default function PanelControlRegistroEcommerce({ onClose }: Props) {
     const telefonoCompleto =
       phoneLocal.trim().length > 0 ? `+51 ${phoneLocal.trim()}` : "";
 
+    const isParaRestaurante = config.labels.tableEntityColumn === "Restaurante";
+    let finalNombreComercial = form.nombre_comercial.trim();
+    if (isParaRestaurante && !finalNombreComercial.endsWith("[Restaurante]")) {
+      finalNombreComercial = `${finalNombreComercial} [Restaurante]`;
+    }
+
     const payload: RegistroManualPayload = {
       ...form,
+      nombre_comercial: finalNombreComercial,
       telefono: telefonoCompleto,
     };
 
@@ -104,8 +113,8 @@ export default function PanelControlRegistroEcommerce({ onClose }: Props) {
       <Tittlex
         variant="modal"
         icon="lucide:layout-panel-top"
-        title="REGISTRAR NUEVO ECOMMERCE"
-        description="Completa el formulario para registrar un nuevo ecommerce en la plataforma, garantizando su integración adecuada al sistema para futuras operaciones, gestiones y monitoreos."
+        title={`REGISTRAR NUEVO ${config.labels.tableEntityColumn.toUpperCase()}`}
+        description={`Completa el formulario para registrar un nuevo ${config.labels.tableEntityColumn.toLowerCase()} en la plataforma, garantizando su integración adecuada al sistema para futuras operaciones, gestiones y monitoreos.`}
       />
 
       {/* Alertas */}

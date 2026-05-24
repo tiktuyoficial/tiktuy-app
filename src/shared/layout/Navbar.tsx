@@ -5,7 +5,6 @@ import { useAuth } from '@/auth/context/useAuth';
 import LOGOTIKTUY from '@/assets/logos/logo-tiktuy-sidebar.webp';
 import type { JSX } from 'react';
 import { useAppNotificationsMobile } from '@/shared/context/notificacionesMovil/appNotificationsMobileContext';
-import { useOnboardingContext } from '@/shared/context/onboarding/OnboardingContext';
 
 // =====================================
 // Navbar móvil con header fijo (h-14)
@@ -32,7 +31,6 @@ export default function Navbar({ isOpen, open, setOpen }: Props) {
   const { user, logout } = useAuth();
   const panelRef = useRef<HTMLDivElement | null>(null);
   const { unread, openSheet } = useAppNotificationsMobile();
-  const { restartTour } = useOnboardingContext();
 
   const handleLogout = () => {
     logout();
@@ -156,6 +154,11 @@ export default function Navbar({ isOpen, open, setOpen }: Props) {
         icon: <Icon icon="lucide:layout-panel-top" width="20" height="20" />,
       },
       {
+        to: "/almacen",
+        label: "Sede",
+        icon: <Icon icon="hugeicons:warehouse" width="20" height="20" />,
+      },
+      {
         to: "/stock",
         label: "Stock de Productos",
         icon: <Icon icon="vaadin:stock" width="20" height="20" />,
@@ -201,11 +204,6 @@ export default function Navbar({ isOpen, open, setOpen }: Props) {
         to: "/reportes",
         label: "Reportes",
         icon: <Icon icon="carbon:report-data" width="20" height="20" />,
-      },
-      {
-        to: "/almacen",
-        label: "Sede",
-        icon: <Icon icon="hugeicons:warehouse" width="20" height="20" />,
       },
 
       // { to: "/__notificaciones__", label: "Notificaciones", icon: <Icon icon="mdi:bell-outline" width="20" height="20" /> },
@@ -269,14 +267,13 @@ export default function Navbar({ isOpen, open, setOpen }: Props) {
           <Icon icon="mdi:menu" width="26" height="26" />
         </button>
 
-        {/* Logo centrado de forma responsiva */}
-        <div className="flex-1 flex justify-center min-w-0 md:absolute md:left-1/2 md:-translate-x-1/2">
-          <img src={LOGOTIKTUY} alt="TIKTUY" className="h-6 sm:h-7 w-auto object-contain shrink-0" draggable={false} />
+        {/* Logo centrado */}
+        <div className="absolute left-1/2 -translate-x-1/2">
+          <img src={LOGOTIKTUY} alt="TIKTUY" className="h-7 w-auto object-contain" draggable={false} />
         </div>
 
-        {/* Campana + Tour + Perfil (arriba a la derecha) */}
-        <div className="flex items-center gap-1 sm:gap-2 shrink-0">
-          {/* Campana Notificaciones */}
+        {/* Campana + Perfil (arriba a la derecha) */}
+        <div className="flex items-center gap-2">
           <button
             onClick={() => openSheet()}
             aria-label="Notificaciones"
@@ -288,15 +285,6 @@ export default function Navbar({ isOpen, open, setOpen }: Props) {
                 {unread > 9 ? '9+' : unread}
               </span>
             )}
-          </button>
-
-          {/* Botón: Ver guía del Tour */}
-          <button
-            onClick={restartTour}
-            className="inline-flex h-9 w-9 items-center justify-center rounded-full text-[#1E3A8A] transition hover:bg-gray-100"
-            aria-label="Ver guía"
-          >
-            <Icon icon="solar:lightbulb-bolt-linear" width="22" height="22" />
           </button>
 
           <button

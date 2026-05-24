@@ -3,10 +3,12 @@ import Tittlex from '@/shared/common/Tittlex';
 import ReporteEntregas from '@/shared/components/ecommerce/reportes/ReporteEntregas';
 import ReporteIngresos from '@/shared/components/ecommerce/reportes/ReporteIngresos';
 import { useEffect, useState } from 'react';
+import { useRoleUiConfig } from '@/auth/constants/useRoleUiConfig';
 
 type Vista = 'ingresos' | 'entregas';
 
 export default function ReportesPage() {
+  const config = useRoleUiConfig();
 
   const [vista, setVista] = useState<Vista>(
     () => (localStorage.getItem('reportes_vista') as Vista) || 'ingresos'
@@ -25,8 +27,8 @@ export default function ReportesPage() {
     <section className="mt-8">
       <div className='flex justify-between items-end pb-5 border-b border-gray30'>
         <Tittlex
-          title="Reportes Page"
-          description="Visualiza Reportes"
+          title={config.labels.reportesTitle}
+          description={config.labels.reportesSubtitle}
         />
         <div className="flex gap-3 items-center">
           <Buttonx

@@ -2,6 +2,7 @@ import type { SolicitudEcommerce } from "@/role/user/service/solicitud-ecommerce
 import Buttonx from "@/shared/common/Buttonx";
 import { Inputx, InputxPhone } from "@/shared/common/Inputx";
 import Tittlex from "@/shared/common/Tittlex";
+// Simulación visual frontend: clasificación de Restaurante vs Ecommerce por rubro
 
 type Props = {
     open: boolean;
@@ -11,6 +12,8 @@ type Props = {
 
 export default function ModalDetalleSolicitudAdminEcommerce({ open, data, onClose }: Props) {
     if (!open) return null;
+    // Simulación visual frontend: detectar si la solicitud es de Restaurante por rubro
+    const isRestaurante = data.rubro?.toLowerCase() === "restaurante";
 
     return (
         <div className="fixed inset-0 z-[60]">
@@ -28,16 +31,16 @@ export default function ModalDetalleSolicitudAdminEcommerce({ open, data, onClos
                 {/* Header */}
                 <Tittlex
                     variant="modal"
-                    icon="mdi:store-outline"
-                    title="Detalle de Ecommerce"
-                    description="Visualice la información registrada del ecommerce seleccionado"
+                    icon={isRestaurante ? "carbon:restaurant" : "mdi:store-outline"}
+                    title={`Detalle de ${isRestaurante ? 'Restaurante' : 'Ecommerce'}`}
+                    description={`Visualice la información registrada del ${isRestaurante ? 'restaurante' : 'ecommerce'} seleccionado`}
                 />
 
                 <div className="h-full flex flex-col gap-5">
 
                     <div className="flex gap-5">
                         <Inputx
-                            label="Ecommerce"
+                            label={isRestaurante ? "Restaurante" : "Ecommerce"}
                             placeholder="Ejm. MiTienda.pe"
                             value={data.ecommerce ?? "—"}
                             disabled

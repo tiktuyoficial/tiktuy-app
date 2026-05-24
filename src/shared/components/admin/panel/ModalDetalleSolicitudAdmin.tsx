@@ -2,6 +2,8 @@ import type { SolicitudCourierCompleto } from "@/role/user/service/solicitud-cou
 import Buttonx from "@/shared/common/Buttonx";
 import { Inputx, InputxPhone } from "@/shared/common/Inputx";
 import Tittlex from "@/shared/common/Tittlex";
+// Simulación visual frontend: helper para detectar y limpiar el tag [Delivery]
+import { cleanBusinessName } from "@/auth/constants/roles";
 
 type Props = {
   open: boolean;
@@ -11,6 +13,9 @@ type Props = {
 
 export default function ModalDetalleSolicitud({ open, data, onClose }: Props) {
   if (!open) return null;
+  // Simulación visual frontend: detectar si esta solicitud es de Delivery
+  const isDelivery = data.nombre_comercial?.endsWith(" [Delivery]") ?? false;
+  const nombreMostrado = cleanBusinessName(data.nombre_comercial);
   return (
     <div className="fixed inset-0 z-[60]">
       {/* Backdrop */}
@@ -26,9 +31,9 @@ export default function ModalDetalleSolicitud({ open, data, onClose }: Props) {
         {/* Header */}
         <Tittlex
           variant="modal"
-          icon="mdi:clipboard-text-outline"
-          title="Detalle de la solicitud de Courier"
-          description="Visualice la información registrada del courier seleccionado"
+          icon={isDelivery ? "material-symbols:directions-bike" : "mdi:clipboard-text-outline"}
+          title={`Detalle de la solicitud de ${isDelivery ? 'Delivery' : 'Courier'}`}
+          description={`Visualice la información registrada del ${isDelivery ? 'delivery' : 'courier'} seleccionado`}
         />
 
         <div className="h-full flex flex-col gap-5">
@@ -83,7 +88,7 @@ export default function ModalDetalleSolicitud({ open, data, onClose }: Props) {
             <Inputx
               label="Nombre Comercial"
               placeholder="Ejem. Electrosur"
-              value={data.nombre_comercial ?? "—"}
+              value={nombreMostrado ?? "—"}
               disabled
             />
             <Inputx

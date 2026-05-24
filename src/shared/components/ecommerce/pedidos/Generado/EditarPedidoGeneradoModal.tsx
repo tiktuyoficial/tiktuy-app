@@ -17,6 +17,7 @@ import Tittlex from "@/shared/common/Tittlex";
 import { InputxNumber } from "@/shared/common/Inputx";
 import { Selectx } from "@/shared/common/Selectx";
 import Buttonx from "@/shared/common/Buttonx";
+import { useRoleUiConfig } from "@/auth/constants/useRoleUiConfig";
 
 /* ===================== TYPES ===================== */
 type DetalleForm = {
@@ -40,6 +41,7 @@ export default function EditarPedidoGeneradoModal({
   onUpdated,
 }: Props) {
   const { token } = useAuth();
+  const config = useRoleUiConfig();
   const modalRef = useRef<HTMLDivElement>(null);
 
   const [pedido, setPedido] = useState<Pedido | null>(null);
@@ -272,7 +274,7 @@ export default function EditarPedidoGeneradoModal({
                 </div>
 
                 <div className="rounded-xl bg-slate-50 border border-slate-200 p-4">
-                  <p className="text-xs font-semibold text-slate-500">Productos</p>
+                  <p className="text-xs font-semibold text-slate-500">{config.labels.labelProductos}</p>
                   <p className="mt-1 text-sm font-bold text-slate-900 tabular-nums">
                     {String(totalItems).padStart(2, "0")}
                   </p>
@@ -293,14 +295,14 @@ export default function EditarPedidoGeneradoModal({
           {/* ===================== PRODUCTOS (tu lógica intacta) ===================== */}
           <div className="rounded-2xl border border-gray-200 bg-white shadow-sm overflow-hidden">
             <div className="px-5 py-4 border-b border-gray-100">
-              <div className="text-sm font-bold text-slate-900">Productos</div>
+              <div className="text-sm font-bold text-slate-900">{config.labels.labelProductos}</div>
               <div className="text-xs text-slate-500">
                 Ajusta cantidad y precio
               </div>
             </div>
 
             <div className="bg-slate-100 px-4 py-3 text-xs font-semibold text-slate-700 grid grid-cols-[2fr_80px_100px_110px]">
-              <span>Producto</span>
+              <span>{config.labels.labelProducto}</span>
               <span className="text-center">Cant.</span>
               <span className="text-center">Precio</span>
               <span className="text-right">Subtotal</span>

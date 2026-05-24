@@ -12,6 +12,7 @@ import { Inputx, InputxPhone, InputxNumber } from "@/shared/common/Inputx";
 import { SelectxDate } from "@/shared/common/Selectx";
 import Tittlex from "@/shared/common/Tittlex";
 import Buttonx from "@/shared/common/Buttonx";
+import { useRoleUiConfig } from "@/auth/constants/useRoleUiConfig";
 
 interface Props {
   isOpen: boolean;
@@ -27,6 +28,7 @@ export default function EditarPedidoAsignadoModal({
   onUpdated,
 }: Props) {
   const { token } = useAuth();
+  const config = useRoleUiConfig();
   const modalRef = useRef<HTMLDivElement>(null);
 
   const [pedido, setPedido] = useState<Pedido | null>(null);
@@ -173,7 +175,7 @@ export default function EditarPedidoAsignadoModal({
             <div className="flex flex-col gap-5">
               <div className="w-full flex gap-5">
                 <Inputx
-                  label="Courier"
+                  label={config.labels.tableEntityColumn}
                   value={nombreCourier}
                   readOnly
                   disabled
@@ -257,7 +259,7 @@ export default function EditarPedidoAsignadoModal({
                   <thead className="bg-gray20">
                     <tr>
                       <th className="px-3 w-full py-2 font-normal text-left">
-                        Producto
+                        {config.labels.labelProducto}
                       </th>
                       <th className="px-3 w-12 py-2 font-normal text-right">
                         Cant.

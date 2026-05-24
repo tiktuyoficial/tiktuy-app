@@ -4,6 +4,7 @@ import { fetchSedesConRepresentante } from '@/services/ecommerce/almacenamiento/
 import { useAuth } from '@/auth/context';
 import type { Categoria } from '@/services/ecommerce/categoria/categoria.types';
 import type { Almacenamiento } from '@/services/ecommerce/almacenamiento/almacenamiento.types';
+import { useRoleUiConfig } from '@/auth/constants/useRoleUiConfig';
 
 import Buttonx from '@/shared/common/Buttonx';
 import { SearchInputx } from '@/shared/common/SearchInputx';
@@ -39,6 +40,7 @@ function toArray<T = unknown>(res: any): T[] {
 
 export default function StockFilters({ onFilterChange }: Props) {
   const { token, user } = useAuth();
+  const config = useRoleUiConfig();
 
   /* Data */
   const [categorias, setCategorias] = useState<Categoria[]>([]);
@@ -170,7 +172,7 @@ export default function StockFilters({ onFilterChange }: Props) {
 
         {/* Sedes */}
         <Selectx
-          label="Almacen"
+          label={config.labels.labelAlmacen}
           value={filters.movimientos_sedes}
           onChange={(e) =>
             setFilters((prev) => ({
@@ -296,7 +298,7 @@ export default function StockFilters({ onFilterChange }: Props) {
             onChange={(e) =>
               setFilters((prev) => ({ ...prev, search: e.target.value }))
             }
-            placeholder="Buscar productos por nombre, código o descripción"
+            placeholder={config.labels.searchProductoPlaceholder}
             className="w-full"
             name="search"
           />

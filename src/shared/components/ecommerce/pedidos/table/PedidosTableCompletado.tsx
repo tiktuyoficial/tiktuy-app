@@ -4,6 +4,7 @@ import { fetchPedidos } from "@/services/ecommerce/pedidos/pedidos.api";
 import type { Pedido } from "@/services/ecommerce/pedidos/pedidos.types";
 import TableActionx from "@/shared/common/TableActionx";
 import { useEffect, useState } from "react";
+import { useRoleUiConfig } from "@/auth/constants/useRoleUiConfig";
 
 type Filtros = {
   courier: string;
@@ -19,6 +20,7 @@ interface Props {
 
 export default function PedidosTableCompletado({ onVer, filtros }: Props) {
   const { token } = useAuth();
+  const config = useRoleUiConfig();
 
   const [pedidos, setPedidos] = useState<Pedido[]>([]);
   const [loading, setLoading] = useState(true);
@@ -82,15 +84,12 @@ export default function PedidosTableCompletado({ onVer, filtros }: Props) {
   const formatearMoneda = (n: number) => `S/. ${n.toFixed(2)}`;
 
   const calcularMonto = (p: Pedido) =>
-    p.monto_recaudar != null
-      ? Number(p.monto_recaudar)
-      : Number(
-        (p.detalles || []).reduce(
-          (acc, d) => acc + Number(d.cantidad) * Number(d.precio_unitario),
-          0
-        )
-      );
-
+    Number(
+      (p.detalles || []).reduce(
+        (acc, d) => acc + Number(d.cantidad) * Number(d.precio_unitario),
+        0
+      )
+    );
 
   const EstadoPill = ({ estado }: { estado: string }) => {
     const e = (estado || "").toLowerCase();
@@ -139,9 +138,9 @@ export default function PedidosTableCompletado({ onVer, filtros }: Props) {
         <thead className="bg-[#E5E7EB]">
           <tr className="text-gray70 font-roboto font-medium">
             <th className="px-2 py-3 text-center">Fec. Entrega</th>
-            <th className="px-4 py-3 text-left">Courier</th>
+            <th className="px-4 py-3 text-left">{config.labels.tableEntityColumn}</th>
             <th className="px-4 py-3 text-left">Cliente</th>
-            <th className="px-4 py-3 text-left">Producto</th>
+            <th className="px-4 py-3 text-left">{config.labels.labelProducto}</th>
             <th className="px-4 py-3 text-center">Cantidad</th>
             <th className="px-4 py-3 text-center">Monto</th>
             <th className="px-4 py-3 text-center">Estado</th>

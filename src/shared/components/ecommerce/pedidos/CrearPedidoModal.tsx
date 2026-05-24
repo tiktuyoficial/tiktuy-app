@@ -10,6 +10,7 @@ import {
 
 import { useAuth } from "@/auth/context/AuthContext";
 import { fetchSedesEcommerceCourierAsociados } from "@/services/ecommerce/ecommerceCourier.api";
+import { useRoleUiConfig } from "@/auth/constants/useRoleUiConfig";
 
 import { Selectx } from "@/shared/common/Selectx";
 import { Inputx, InputxPhone, InputxNumber } from "@/shared/common/Inputx";
@@ -46,6 +47,7 @@ export default function CrearPedidoModal({
   onPedidoCreado: () => void;
 }) {
   const { token } = useAuth();
+  const config = useRoleUiConfig();
 
   const [sedes, setSedes] = useState<any[]>([]);
   const [productos, setProductos] = useState<ProductoUI[]>([]);
@@ -282,7 +284,7 @@ export default function CrearPedidoModal({
             variant="modal"
             icon="lsicon:shopping-cart-filled"
             title="Registrar pedido"
-            description="Un pedido puede tener varios productos y una sola fecha de entrega."
+            description={config.labels.pedidosCrearDesc}
           />
         </div>
 
@@ -363,7 +365,7 @@ export default function CrearPedidoModal({
           {/* PRODUCTO */}
           <div className="flex gap-5">
             <Selectx
-              label="Producto"
+              label={config.labels.labelProducto}
               name="producto_id"
               labelVariant="left"
               value={form.producto_id}
@@ -407,7 +409,7 @@ export default function CrearPedidoModal({
             className="border border-dashed rounded-lg py-2 flex items-center justify-center gap-2 text-gray-700 hover:bg-gray-50 disabled:opacity-50"
           >
             <Icon icon="mdi:plus-circle-outline" />
-            Agregar producto
+            {config.labels.pedidosAgregarProd}
           </button>
 
           {/* LISTA PRODUCTOS */}
@@ -415,7 +417,7 @@ export default function CrearPedidoModal({
             <div className="bg-gray-50 border rounded-lg p-4 space-y-2 border-gray-700">
               <div className="flex items-center gap-2 font-semibold text-gray-700">
                 <Icon icon="mdi:cart-outline" />
-                Productos agregados
+                {config.labels.labelProductos} agregados
               </div>
 
               {detalles.map((d) => (

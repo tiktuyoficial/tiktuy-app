@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "@/auth/context";
+import { useRoleUiConfig } from "@/auth/constants/useRoleUiConfig";
 import Buttonx from "@/shared/common/Buttonx";
 
 import { getEntregasReporte, listCouriers } from "@/services/ecommerce/reportes/ecommerceReportes.api";
@@ -105,6 +106,7 @@ function ChipsLegend(props: any) {
 
 export default function ReporteEntregas() {
   const { token } = useAuth();
+  const config = useRoleUiConfig();
 
   const [vista, setVista] = useState<VistaReporte>("diario");
   const [desde, setDesde] = useState(hoyISO());
@@ -351,7 +353,7 @@ export default function ReporteEntregas() {
                   className={[
                     "px-4 py-2 text-sm font-medium rounded-lg transition-colors",
                     active
-                      ? "bg-gray90 text-white shadow-sm"
+                      ? "bg-gray-900 text-white shadow-sm"
                       : "text-gray70 hover:bg-gray20",
                   ].join(" ")}
                 >
@@ -396,7 +398,7 @@ export default function ReporteEntregas() {
 
               <div className="w-full sm:w-auto sm:min-w-[220px] sm:max-w-[260px] min-w-0">
                 <Selectx
-                  label="Courier"
+                  label={config.labels.tableEntityColumn}
                   value={courierId}
                   onChange={(e) => setCourierId(e.target.value)}
                   className="w-full"
@@ -478,7 +480,7 @@ export default function ReporteEntregas() {
 
               <div className="w-full sm:w-auto sm:min-w-[220px] sm:max-w-[260px] min-w-0">
                 <Selectx
-                  label="Courier"
+                  label={config.labels.tableEntityColumn}
                   value={courierId}
                   onChange={(e) => setCourierId(e.target.value)}
                   className="w-full"
@@ -526,7 +528,7 @@ export default function ReporteEntregas() {
 
               <div className="w-full sm:w-auto sm:min-w-[220px] sm:max-w-[260px] min-w-0">
                 <Selectx
-                  label="Courier"
+                  label={config.labels.tableEntityColumn}
                   value={courierId}
                   onChange={(e) => setCourierId(e.target.value)}
                   className="w-full"
@@ -741,7 +743,7 @@ export default function ReporteEntregas() {
                       <EmptyState
                         icon="mdi:chart-bar"
                         title="No hay datos para mostrar"
-                        desc="Prueba cambiando el rango o quitando el filtro de courier."
+                        desc={`Prueba cambiando el rango o quitando el filtro de ${config.labels.tableEntityColumn.toLowerCase()}.`}
                         heightClass="h-[320px]"
                       />
                     )}
@@ -752,7 +754,7 @@ export default function ReporteEntregas() {
                   <EmptyState
                     icon="mdi:chart-donut"
                     title="No hay datos para este rango"
-                    desc="Prueba ampliando el rango (Desde/Hasta) o quitando el filtro de courier."
+                    desc={`Prueba ampliando el rango (Desde/Hasta) o quitando el filtro de ${config.labels.tableEntityColumn.toLowerCase()}.`}
                     heightClass="h-[320px]"
                   />
                 </div>

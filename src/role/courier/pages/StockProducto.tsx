@@ -1,5 +1,5 @@
-// src/role/courier/pages/StockProducto.tsx
 import { useEffect, useMemo, useState } from "react";
+import { useRoleUiConfig } from "@/auth/constants/useRoleUiConfig";
 import { getCourierProductos } from "@/services/courier/producto/productoCourier.api";
 import type { Producto } from "@/services/courier/producto/productoCourier.type";
 
@@ -19,6 +19,7 @@ export type StockFilters = {
 
 
 export default function StockPage() {
+  const config = useRoleUiConfig();
   const [raw, setRaw] = useState<Producto[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -134,8 +135,8 @@ const options = useMemo(() => {
   return (
     <section className="mt-8">
       <Tittlex
-        title="Stock de Productos"
-        description="Control de stock físico por almacén del courier"
+        title={config.labels.stockTitle}
+        description={config.labels.stockSubtitle}
       />
 
       <div className="my-8">

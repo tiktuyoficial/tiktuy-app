@@ -2,6 +2,7 @@ import { useState, type Dispatch, type SetStateAction } from "react";
 import { Selectx } from "@/shared/common/Selectx";
 import { SearchInputx } from "@/shared/common/SearchInputx";
 import Buttonx from "@/shared/common/Buttonx";
+import { useRoleUiConfig } from "@/auth/constants/useRoleUiConfig";
 
 /* ======================================================
    TIPOS LIMPIOS (solo lo que se usa)
@@ -43,6 +44,7 @@ export default function StockPedidoFilterCourier({
   options = { almacenes: [], categorias: [], estados: [] },
   loading = false,
 }: Props) {
+  const config = useRoleUiConfig();
   // estado interno si el padre no controla
   const [internal, setInternal] = useState<StockFilters>(DEFAULT_FILTERS);
 
@@ -76,13 +78,13 @@ export default function StockPedidoFilterCourier({
               SEDE (Courier)
           ======================= */}
           <Selectx
-            label="Ecommerce"
+            label={config.labels.tableEntityColumn}
             name="ecommerceOrigenId"
             value={view.ecommerceOrigenId}
             onChange={(e) => {
               set({ ecommerceOrigenId: e.target.value });
             }}
-            placeholder="Seleccionar ecommerce"
+            placeholder={config.labels.tableEntityPlaceholder}
             disabled={loading || options.almacenes.length === 0}
           >
             {options.almacenes.map((opt) => (

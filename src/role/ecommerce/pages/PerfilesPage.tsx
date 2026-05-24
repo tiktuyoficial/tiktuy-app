@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react';
+import { useRoleUiConfig } from '@/auth/constants/useRoleUiConfig';
 import PerfilesTable from '@/shared/components/ecommerce/perfiles/PerfilesTable';
 import PerfilFormModal from '@/shared/components/ecommerce/perfiles/PerfilFormModal';
 import PerfilEditModal from '@/shared/components/ecommerce/perfiles/PerfilEditModal';
@@ -11,6 +12,7 @@ export default function PerfilesPage() {
   const [editOpen, setEditOpen] = useState(false);
   const [selected, setSelected] = useState<PerfilTrabajador | null>(null);
   const [reloadKey, setReloadKey] = useState(0);
+  const config = useRoleUiConfig();
 
   // 🔄 dispara recarga de la tabla
   const reloadTable = useCallback(() => {
@@ -21,12 +23,12 @@ export default function PerfilesPage() {
     <section className="mt-8">
       <div className="flex justify-between">
         <Tittlex
-          title="Perfiles"
-          description="Aqui podras registrar los encargados especificos por modulo"
+          title={config.labels.perfilesTitle}
+          description={config.labels.perfilesSubtitle}
         />
         <div className="flex items-end">
           <Buttonx
-            label="Nuevo Perfil"
+            label={config.labels.perfilesCreateButton}
             icon="solar:user-broken" // Icono correspondiente
             variant="secondary" // Usamos "secondary" cuando está activo
             onClick={() => setModalOpen(true)}

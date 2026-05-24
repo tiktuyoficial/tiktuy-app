@@ -6,6 +6,7 @@ import Buttonx from "@/shared/common/Buttonx";
 import type { Producto } from "@/services/courier/producto/productoCourier.type";
 import ImageUploadx from "@/shared/common/ImageUploadx";
 import ImagePreviewModalx from "@/shared/common/ImagePreviewModalx";
+import { useRoleUiConfig } from "@/auth/constants/useRoleUiConfig";
 
 type Props = {
   isOpen: boolean;
@@ -43,6 +44,7 @@ export default function ProductoDetalleModal({
   onClose,
   producto,
 }: Props) {
+  const config = useRoleUiConfig();
   // Cerrar con ESC
   useEffect(() => {
     if (!isOpen) return;
@@ -121,8 +123,8 @@ export default function ProductoDetalleModal({
         <Tittlex
           variant="modal"
           icon="vaadin:stock"
-          title="DETALLE DEL PRODUCTO"
-          description="Consulta toda la información registrada de este producto, incluyendo sus datos básicos, ubicación en almacén, stock y condiciones asociadas."
+          title={config.labels.modalVerProducto.toUpperCase()}
+          description={config.labels.modalVerProductoDesc}
         />
 
         {/* Body scrollable */}
@@ -139,7 +141,7 @@ export default function ProductoDetalleModal({
             />
             <Inputx
               name="nombre_producto"
-              label="Nombre del Producto"
+              label={config.labels.labelNombreProducto}
               value={nombre}
               readOnly
               disabled

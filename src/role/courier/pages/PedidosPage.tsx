@@ -1,5 +1,5 @@
-// src/pages/courier/PedidosPage.tsx
 import { useState } from "react";
+import { useRoleUiConfig } from "@/auth/constants/useRoleUiConfig";
 import TablePedidoCourier from "@/shared/components/courier/pedido/TablePedidoCourier";
 import { useAuth } from "@/auth/context";
 import AsignarRepartidor from "@/shared/components/courier/pedido/AsignarRepartidor";
@@ -12,6 +12,7 @@ type Vista = "asignados" | "pendientes" | "terminados";
 
 export default function PedidosPage() {
   const { token } = useAuth();
+  const config = useRoleUiConfig();
 
   // pestaña activa (persistida)
   // pestaña activa (default: asignados)
@@ -58,8 +59,8 @@ export default function PedidosPage() {
       {/* Header con tabs */}
       <div className="flex justify-between items-end pb-5 border-b border-gray30">
         <Tittlex
-          title="Gestión de Pedidos"
-          description="Administra y visualiza el estado de tus pedidos en cada etapa del proceso"
+          title={config.labels.pedidosTitle}
+          description={config.labels.pedidosSubtitle}
         />
 
         <div className="flex gap-3 items-end">

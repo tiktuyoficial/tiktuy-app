@@ -1,5 +1,6 @@
 import Buttonx from "@/shared/common/Buttonx";
 import { useMemo, useState } from "react";
+import { useRoleUiConfig } from "@/auth/constants/useRoleUiConfig";
 
 type Props = {
   open: boolean;
@@ -40,6 +41,7 @@ export default function ValidarAbonoModal({
   ciudad,
   onConfirm,
 }: Props) {
+  const config = useRoleUiConfig();
   const [agree, setAgree] = useState(false);
   const [saving, setSaving] = useState(false);
 
@@ -146,7 +148,7 @@ export default function ValidarAbonoModal({
 
                 {showDirecto && (
                   <>
-                    <div className="text-gray60">Directo ecommerce</div>
+                    <div className="text-gray60">Directo {config.labels.tableEntityColumn.toLowerCase()}</div>
                     <div className="text-right text-gray80 tabular-nums">
                       {money(totalDirectoEcommerce)}
                     </div>

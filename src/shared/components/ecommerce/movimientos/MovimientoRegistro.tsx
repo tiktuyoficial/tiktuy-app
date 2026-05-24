@@ -3,10 +3,12 @@ import MovimientoRegistroFilters, { type Filters } from './MovimientoRegistroFil
 import MovimientoRegistroTable from './MovimientoRegistroTable';
 import CrearMovimientoModal from '../CrearMovimientoModal';
 import type { Producto } from '@/services/ecommerce/producto/producto.types';
+import { useRoleUiConfig } from "@/auth/constants/useRoleUiConfig";
 import { useNotification } from '@/shared/context/notificacionesDeskop/useNotification';
 
 export default function MovimientoRegistro() {
   const { notify } = useNotification();
+  const config = useRoleUiConfig();
 
   // Filtros conectados a la tabla
   const [filters, setFilters] = useState<Filters>({
@@ -29,7 +31,7 @@ export default function MovimientoRegistro() {
 
   const handleNuevoMovimientoClick = () => {
     if (productosSeleccionados.length === 0) {
-      notify('Selecciona al menos un producto para continuar.', 'error');
+      notify(`Selecciona al menos un ${config.labels.labelProducto.toLowerCase()} para continuar.`, 'error');
       return;
     }
 
@@ -44,7 +46,7 @@ export default function MovimientoRegistro() {
 
     if (almacenes.length > 1) {
       notify(
-        'No puedes seleccionar productos de diferentes almacenes para un mismo movimiento.',
+        `No puedes seleccionar ${config.labels.labelProductos.toLowerCase()} de diferentes almacenes para un mismo movimiento.`,
         'error'
       );
       return;

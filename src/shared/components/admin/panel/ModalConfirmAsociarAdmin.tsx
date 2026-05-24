@@ -32,7 +32,8 @@ export default function ModalConfirmAsociar({
             </div>
 
             <h3 className="text-xl font-semibold mb-2">
-              {associated ? 'Courier Asociado' : 'Registrar Courier'}
+              {/* Simulación visual frontend: este modal aplica a Courier y Delivery */}
+              {associated ? 'Courier / Delivery Asociado' : 'Registrar Courier / Delivery'}
             </h3>
 
             {!associated ? (

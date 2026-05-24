@@ -1,4 +1,5 @@
 import { useAuth } from "@/auth/context/useAuth";
+import { useRoleUiConfig } from "@/auth/constants/useRoleUiConfig";
 import { useCallback, useEffect, useMemo, useState, useRef } from "react";
 import {
   asociarCourier,
@@ -67,6 +68,7 @@ function useSnackbar(timeoutMs = 3000) {
 
 export default function EcommerceHomePage() {
   const { token } = useAuth();
+  const config = useRoleUiConfig();
   const [data, setData] = useState<SedeConEstado[]>([]);
   const [loading, setLoading] = useState(true);
   const [, setErrorMsg] = useState("");
@@ -120,28 +122,38 @@ export default function EcommerceHomePage() {
     closeModal();
   };
 
+  const isRestaurante = config.labels.entityName === "Restaurante";
+
+  const dataSegunRol = useMemo(() => {
+    return data.filter((e) => {
+      const isDelivery = (e.courier_nombre ?? "").toLowerCase().includes("delivery");
+      // Restaurante solo ve "Delivery", Ecommerce ve los que NO son "Delivery" (Couriers normales)
+      return isRestaurante ? isDelivery : !isDelivery;
+    });
+  }, [data, isRestaurante]);
+
   const dataFiltrada = useMemo(
     () =>
-      data.filter(
+      dataSegunRol.filter(
         (e) =>
           (!filtros.ciudad || (e.ciudad ?? "") === filtros.ciudad) &&
           (!filtros.courier || (e.courier_nombre ?? "") === filtros.courier) &&
           (!filtros.estado || e.estado_asociacion === filtros.estado)
       ),
-    [data, filtros]
+    [dataSegunRol, filtros]
   );
 
   const ciudades = useMemo(
     () =>
-      [...new Set(data.map((d) => d.ciudad ?? "").filter(Boolean))] as string[],
-    [data]
+      [...new Set(dataSegunRol.map((d) => d.ciudad ?? "").filter(Boolean))] as string[],
+    [dataSegunRol]
   );
   const couriersUnicos = useMemo(
     () =>
       [
-        ...new Set(data.map((d) => d.courier_nombre ?? "").filter(Boolean)),
+        ...new Set(dataSegunRol.map((d) => d.courier_nombre ?? "").filter(Boolean)),
       ] as string[],
-    [data]
+    [dataSegunRol]
   );
   const estados = useMemo(
     () => ["Activo", "No Asociado", "Inactivo", "Eliminado"],
@@ -204,8 +216,8 @@ export default function EcommerceHomePage() {
   return (
     <section className="mt-8 flex flex-col gap-5">
       <Tittlex
-        title="Panel de Control"
-        description="Monitoreo de asociación por SEDES"
+        title={config.labels.dashboardTitle}
+        description={config.labels.dashboardSubtitle}
       />
 
       {/* Filtros */}
@@ -229,10 +241,10 @@ export default function EcommerceHomePage() {
         <Selectx
           id="f-courier"
           name="courier"
-          label="Courier"
+          label={config.labels.tableEntityColumn}
           value={filtros.courier}
           onChange={handleChangeFiltro}
-          placeholder="Seleccionar Courier"
+          placeholder={config.labels.tableEntityPlaceholder}
           className="w-full"
         >
           {couriersUnicos.map((c) => (
@@ -280,7 +292,7 @@ export default function EcommerceHomePage() {
               <thead className="bg-[#E5E7EB]">
                 <tr className="text-gray70 font-roboto font-medium">
                   <th className="px-4 py-3 text-left">Ciudad</th>
-                  <th className="px-4 py-3 text-left">Courier</th>
+                  <th className="px-4 py-3 text-left">{config.labels.tableEntityColumn}</th>
                   <th className="px-4 py-3 text-left">Dirección</th>
                   <th className="px-4 py-3 text-left">Teléfono</th>
                   <th className="px-4 py-3 text-center">Estado</th>

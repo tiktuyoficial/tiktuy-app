@@ -2,6 +2,7 @@
 import { useMemo, useState, useCallback } from "react";
 import type { PedidoDiaItem } from "@/services/ecommerce/cuadreSaldo/cuadreSaldoC.types";
 import Buttonx from "@/shared/common/Buttonx";
+import { useRoleUiConfig } from "@/auth/constants/useRoleUiConfig";
 import TableActionx from "@/shared/common/TableActionx";
 
 /**
@@ -97,7 +98,7 @@ const metodoPagoLabel = (metodoPago: unknown) => {
   // si no hay método => Pedido rechazado
   if (!m) return "Pedido rechazado";
 
-  if (m === "DIRECTO_ECOMMERCE") return "Pago Digital al Ecommerce / Pagado";
+  if (m === "DIRECTO_ECOMMERCE") return `Pago Digital al ${config.labels.tableEntityColumn} / Pagado`;
   if (m === "BILLETERA") return "Pago Digital al Courier / Pagado";
   if (m === "EFECTIVO") return "Efectivo / Pagado";
 
@@ -205,6 +206,7 @@ export default function VizualisarPedidos({
   rows,
   loading,
 }: Props) {
+  const config = useRoleUiConfig();
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
   const title = useMemo(() => `Pedidos del día ${formatDMY(fecha)}`, [fecha]);

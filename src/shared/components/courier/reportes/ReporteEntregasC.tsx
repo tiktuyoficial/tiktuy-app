@@ -298,7 +298,7 @@ export default function ReporteEntregasC() {
                   className={[
                     "px-4 py-2 text-sm font-medium rounded-lg transition-colors",
                     active
-                      ? "bg-gray90 text-white shadow-sm"
+                      ? "bg-gray-900 text-white shadow-sm"
                       : "text-gray70 hover:bg-gray20",
                   ].join(" ")}
                 >

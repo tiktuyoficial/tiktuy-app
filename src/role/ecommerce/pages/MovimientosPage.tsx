@@ -1,5 +1,6 @@
 // src/pages/ecommerce/movimientos/RegistroMovimientoPage.tsx
 import { useCallback, useEffect, useState } from "react";
+import { useRoleUiConfig } from "@/auth/constants/useRoleUiConfig";
 
 import type { Producto } from "@/services/ecommerce/producto/producto.types";
 import MovimientoRegistroFilters, {
@@ -22,6 +23,7 @@ import ModalSlideRight from "@/shared/common/ModalSlideRight";
 
 export default function RegistroMovimientoPage() {
   const { notify } = useNotification();
+  const config = useRoleUiConfig();
 
   const [selectedProductsMap, setSelectedProductsMap] = useState<
     Record<string, Producto>
@@ -151,17 +153,17 @@ export default function RegistroMovimientoPage() {
     <section className="mt-8">
       <div className="flex justify-between items-center mb-6">
         <Tittlex
-          title="Movimientos"
+          title={config.labels.movimientosTitle}
           description={
             modalMode === "registro"
-              ? "Realice nuevos movimientos de productos."
+              ? config.labels.movimientosSubtitle
               : "Visualice y valide movimientos registrados."
           }
         />
 
         <div className="flex gap-2 items-center">
           <Buttonx
-            label="Nuevo Movimiento"
+            label={config.labels.movimientosCreateButton}
             icon="carbon:asset-movement"
             variant={modalMode === "registro" ? "secondary" : "tertiary"}
             onClick={() => setModalMode("registro")}

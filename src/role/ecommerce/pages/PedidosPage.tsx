@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useRoleUiConfig } from '@/auth/constants/useRoleUiConfig';
 
 import PedidosGenerado from '@/shared/components/ecommerce/pedidos/PedidosGenerado';
 import PedidosAsignado from '@/shared/components/ecommerce/pedidos/PedidosAsignado';
@@ -33,6 +34,7 @@ type Filtros = {
 
 export default function PedidosPage() {
   const { token } = useAuth();
+  const config = useRoleUiConfig();
 
   const [vista, setVista] = useState<Vista>('generado');
 
@@ -134,8 +136,8 @@ export default function PedidosPage() {
       {/* Tabs */}
       <div className="flex justify-between items-end pb-5 border-b border-gray30">
         <Tittlex
-          title="Panel de Pedidos"
-          description="Administra y visualiza el estado de tus pedidos en cada etapa del proceso"
+          title={config.labels.pedidosTitle}
+          description={config.labels.pedidosSubtitle}
         />
 
         <div className="flex gap-3 items-center">
@@ -191,7 +193,7 @@ export default function PedidosPage() {
             </div>
 
             <Buttonx
-              label="Nuevo Pedido"
+              label={config.labels.pedidosCreateButton}
               icon="iconoir:new-tab"
               variant="secondary"
               onClick={handleNuevoPedido}
@@ -205,13 +207,13 @@ export default function PedidosPage() {
       <div className="bg-white p-5 rounded shadow-default border-b-4 border-gray90 flex items-end gap-4">
         <Selectx
           id="f-courier"
-          label="Courier"
+          label={config.labels.tableEntityColumn}
           value={filtros.courier}
           onChange={(e) => setFiltros((prev) => ({ ...prev, courier: e.target.value }))}
-          placeholder="Seleccionar courier"
+          placeholder={config.labels.tableEntityPlaceholder}
           className="w-full"
         >
-          <option value="">— Seleccionar courier —</option>
+          <option value="">— {config.labels.tableEntityPlaceholder} —</option>
           {loadingFilters ? (
             <option value="" disabled>Cargando…</option>
           ) : (
@@ -223,13 +225,13 @@ export default function PedidosPage() {
 
         <Selectx
           id="f-producto"
-          label="Producto"
+          label={config.labels.labelProducto}
           value={filtros.producto}
           onChange={(e) => setFiltros((prev) => ({ ...prev, producto: e.target.value }))}
-          placeholder="Seleccionar producto"
+          placeholder={`Seleccionar ${config.labels.labelProducto.toLowerCase()}`}
           className="w-full"
         >
-          <option value="">— Seleccionar producto —</option>
+          <option value="">— Seleccionar {config.labels.labelProducto.toLowerCase()} —</option>
           {loadingFilters ? (
             <option value="" disabled>Cargando…</option>
           ) : (

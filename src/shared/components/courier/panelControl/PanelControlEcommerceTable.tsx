@@ -11,6 +11,7 @@ import PanelControlInviteEcommer from "@/shared/components/courier/panelControl/
 import { Inputx, InputxNumber } from "@/shared/common/Inputx";
 import Badgex from "@/shared/common/Badgex";
 import TableActionx from "@/shared/common/TableActionx";
+import { useRoleUiConfig } from "@/auth/constants/useRoleUiConfig";
 
 type EstadoTexto = "activo" | "pendiente";
 
@@ -112,6 +113,7 @@ function DetalleEcommerceModal({
   onClose: () => void;
   data: EcommerceSede | null;
 }) {
+  const config = useRoleUiConfig();
   if (!open || !data) return null;
 
   const e: any = data.ecommerce ?? {};
@@ -156,7 +158,7 @@ function DetalleEcommerceModal({
                 color="#1E3A8A"
               />
               <h2 className="text-primary text-[20px] font-bold uppercase font-roboto">
-                DETALLE DEL ECOMMERCE
+                DETALLE DEL {config.labels.tableEntityColumn.toUpperCase()}
               </h2>
             </div>
 
@@ -176,7 +178,7 @@ function DetalleEcommerceModal({
           </div>
 
           <p className="text-sm text-gray60 leading-relaxed mt-1">
-            Consulta la información del comercio electrónico: datos generales,
+            Consulta la información de este {config.labels.tableEntityColumn.toLowerCase()}: datos generales,
             ubicación, contacto y rubro de actividad.
           </p>
         </div>

@@ -11,6 +11,7 @@ import type {
 } from "@/services/ecommerce/importexcelPedido/importexcelPedido.type";
 import { importPedidosDesdePreview } from "@/services/ecommerce/importexcelPedido/importexcelPedido.api";
 import { Icon } from "@iconify/react";
+import { useRoleUiConfig } from "@/auth/constants/useRoleUiConfig";
 
 // Productos y zonas por sede
 import {
@@ -90,6 +91,7 @@ export default function ImportPreviewPedidosModal({
   data: PreviewResponseDTO;
   onImported: () => void;
 }) {
+  const config = useRoleUiConfig();
   // ---------- estado base ----------
   const [groups, setGroups] = useState<PreviewGroupDTO[]>(
     data.preview.map((g) => ({
@@ -799,7 +801,7 @@ export default function ImportPreviewPedidosModal({
               </span>
               <span className="inline-flex items-center gap-2 rounded-full bg-white border border-gray-200 px-3 py-1.5 text-[12px] text-slate-600">
                 <span className="w-2 h-2 rounded-full bg-violet-500" />
-                Producto no encontrado en sede
+                {config.labels.labelProducto} no encontrado en sede
               </span>
             </div>
           </div>
@@ -903,7 +905,7 @@ export default function ImportPreviewPedidosModal({
                     Referencia
                   </th>
                   <th className="border-b border-gray-200 px-3 py-3 text-center">
-                    Producto
+                    {config.labels.labelProducto}
                   </th>
                   <th className="border-b border-gray-200 px-3 py-3 text-center">
                     Cantidad

@@ -10,6 +10,9 @@ export default function RegistroInvitacionEcommerce() {
 
   const token = sp.get("token") || "";
   const name = sp.get("name") || "Tu tienda";
+  // Simulación visual frontend: si el rubro es 'Restaurante', mostrar UI de Restaurante
+  const rubro = sp.get("rubro") || "";
+  const isRestaurante = rubro.toLowerCase() === "restaurante";
 
   // UI state
   const [password, setPassword] = useState("");
@@ -86,8 +89,13 @@ export default function RegistroInvitacionEcommerce() {
         <h1 className="text-xl font-bold text-[#1A237E] text-center mb-1 uppercase">
           Crear contraseña
         </h1>
+        {/* Simulación visual frontend: mostrar el tipo de cuenta según el rol visual */}
         <p className="text-center text-sm text-gray-600 mb-2">
-          Activa tu cuenta de Ecommerce para{" "}
+          Activa tu cuenta de {isRestaurante ? (
+            <span className="font-semibold text-orange-600">Restaurante</span>
+          ) : (
+            <span className="font-semibold text-purple-700">Ecommerce</span>
+          )} para{" "}
           <span className="font-semibold text-blue-700">{name}</span>
         </p>
         <p className="text-center text-xs text-gray-400 mb-5">

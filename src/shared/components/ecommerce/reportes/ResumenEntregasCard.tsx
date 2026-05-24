@@ -1,4 +1,5 @@
 import { Icon } from '@iconify/react';
+import { useRoleUiConfig } from "@/auth/constants/useRoleUiConfig";
 import Cardx from '@/shared/common/Cards';
 
 type Props = {
@@ -18,6 +19,8 @@ export default function ResumenEntregasCard({
   ecommerce = [],
   motorizados = [],
 }: Props) {
+  const config = useRoleUiConfig();
+
   return (
     <Cardx className="flex flex-col items-center gap-4 py-4">
 
@@ -29,7 +32,7 @@ export default function ResumenEntregasCard({
       {/* ECOMMERCE */}
       {ecommerce.length > 0 && (
         <div className="flex flex-col items-center gap-2">
-          <p className="text-xs text-gray60">Ecommerce:</p>
+          <p className="text-xs text-gray60">{config.labels.tableEntityColumn}:</p>
 
           <div className="flex gap-3">
             {ecommerce.map((e) => (

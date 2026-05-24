@@ -1,5 +1,5 @@
-// src/pages/courier/cuadre-saldo/CuadreSaldoPage.tsx
 import React, { useEffect, useRef, useState } from "react";
+import { useRoleUiConfig } from "@/auth/constants/useRoleUiConfig";
 
 import RepartidorTable from "@/shared/components/courier/cuadreSaldo/CuadreSaldoTable";
 import EcommerceCuadreSaldoTable from "@/shared/components/courier/cuadreSaldo/EcommerceCuadreSaldoTable";
@@ -32,6 +32,7 @@ type Tab = "ECOMMERCE" | "REPARTIDOR";
 
 const CuadreSaldoPage: React.FC = () => {
   const token = getToken();
+  const config = useRoleUiConfig();
 
   const [tab, setTab] = useState<Tab>("ECOMMERCE");
 
@@ -87,13 +88,13 @@ const CuadreSaldoPage: React.FC = () => {
       {/* Header */}
       <div className="flex items-end justify-between pb-5 border-b border-gray30">
         <Tittlex
-          title="Cuadre de Saldo"
-          description="Monitorea lo recaudado en el día"
+          title={config.labels.cuadreTitle}
+          description={config.labels.cuadreSubtitle}
         />
 
         <div className="flex items-end gap-3">
           <Buttonx
-            label="Ecommerce"
+            label={config.labels.tableEntityColumn}
             icon="mynaui:store"
             variant={tab === "ECOMMERCE" ? "secondary" : "tertiary"}
             onClick={() => setTab("ECOMMERCE")}

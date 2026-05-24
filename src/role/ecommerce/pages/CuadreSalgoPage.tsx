@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useRoleUiConfig } from "@/auth/constants/useRoleUiConfig";
 import { Icon } from "@iconify/react";
 
 import CuadreAbonosTable from "@/shared/components/ecommerce/cuadresaldo/CuadreAbonosTable";
@@ -37,6 +38,7 @@ type ViewMode = "list" | "detail";
 /* ================= Page ================= */
 const CuadreSaldoPage: React.FC = () => {
   const token = getToken();
+  const config = useRoleUiConfig();
 
   // Filtros
   const [couriers, setCouriers] = useState<{ id: number; nombre: string }[]>([]);
@@ -260,8 +262,8 @@ const CuadreSaldoPage: React.FC = () => {
       {viewMode === "list" && (
         <div className="flex justify-between items-end">
           <Tittlex
-            title="Cuadre de Saldo"
-            description="Monitorea tus abonos y liquidaciones"
+            title={config.labels.cuadreTitle}
+            description={config.labels.cuadreSubtitle}
           />
         </div>
       )}
@@ -316,12 +318,12 @@ const CuadreSaldoPage: React.FC = () => {
         <div className="bg-white p-5 rounded shadow-default border-b-4 border-gray90 flex items-end gap-4">
           <Selectx
             id="f-courier"
-            label="Courier"
+            label={config.labels.tableEntityColumn}
             value={courierId === "" ? "" : String(courierId)}
             onChange={(e) => {
               setCourierId(e.target.value === "" ? "" : Number(e.target.value));
             }}
-            placeholder="Seleccionar courier"
+            placeholder={config.labels.tableEntityPlaceholder}
             className="w-full"
           >
             <option value="">— Seleccionar —</option>

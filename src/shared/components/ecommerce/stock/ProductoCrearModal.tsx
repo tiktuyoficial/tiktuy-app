@@ -10,6 +10,7 @@ import {
 import { crearProducto } from "@/services/ecommerce/producto/producto.api";
 import { fetchCategorias } from "@/services/ecommerce/categoria/categoria.api";
 import { useAuth } from "@/auth/context";
+import { useRoleUiConfig } from "@/auth/constants/useRoleUiConfig";
 
 import type { Producto } from "@/services/ecommerce/producto/producto.types";
 import type { Categoria } from "@/services/ecommerce/categoria/categoria.types";
@@ -151,6 +152,7 @@ export default function ProductoCrearModal({
   almacenamientoId,
 }: Props) {
   const { token } = useAuth();
+  const config = useRoleUiConfig();
   const [categorias, setCategorias] = useState<Categoria[]>([]);
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState<FormState>(getInitialForm(almacenamientoId));
@@ -363,8 +365,8 @@ export default function ProductoCrearModal({
         <Tittlex
           variant="modal"
           icon="vaadin:stock"
-          title="REGISTRAR NUEVO PRODUCTO"
-          description="Registra un nuevo producto en tu inventario especificando su información básica, ubicación en almacén y condiciones de stock."
+          title={config.labels.modalNuevoProducto}
+          description={config.labels.modalNuevoProductoDesc}
         />
 
         <form
@@ -385,8 +387,8 @@ export default function ProductoCrearModal({
 
             <Inputx
               name="nombre_producto"
-              label="Nombre del Producto"
-              placeholder="Ejem. Zapatos de Cuero"
+              label={config.labels.labelNombreProducto}
+              placeholder={config.labels.placeholderNombreProducto}
               value={form.nombre_producto}
               onChange={handleChange}
               required
@@ -401,7 +403,7 @@ export default function ProductoCrearModal({
             value={form.descripcion}
             onChange={handleChange}
             disabled={saving}
-            placeholder="Describe el producto…"
+            placeholder={config.labels.placeholderDescProducto}
             autoResize
             minRows={3}
             maxRows={8}

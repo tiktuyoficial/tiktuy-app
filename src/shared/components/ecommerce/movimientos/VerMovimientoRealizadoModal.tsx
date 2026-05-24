@@ -1,8 +1,9 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useRef } from "react";
 import { createPortal } from "react-dom";
 import { HiClock, HiX } from "react-icons/hi";
 import { Icon } from "@iconify/react/dist/iconify.js";
 import { useAuth } from "@/auth/context";
+import { useRoleUiConfig } from "@/auth/constants/useRoleUiConfig";
 import type {
   AlmacenRef,
   EstadoRef,
@@ -83,6 +84,8 @@ function estadoPillUI(estadoRaw: string) {
 export default function VerMovimientoRealizadoModal(props: Props) {
   const { open, onClose } = props;
   const { token } = useAuth();
+  const config = useRoleUiConfig();
+  const modalRef = useRef<HTMLDivElement>(null);
 
   // Estado interno cuando trabajamos con uuid
   const [detail, setDetail] = useState<MovimientoDetalle | null>(null);
@@ -560,8 +563,8 @@ export default function VerMovimientoRealizadoModal(props: Props) {
                           />
                         </div>
                         <div>
-                          <div className="text-sm font-bold text-slate-900">
-                            Productos trasladados
+                          <div className="text-[13px] font-semibold text-gray-800">
+                            {config.labels.labelProductos} trasladados
                           </div>
                           <div className="text-xs text-slate-500">
                             Detalle por ítem
@@ -595,7 +598,7 @@ export default function VerMovimientoRealizadoModal(props: Props) {
                           </th>
                           <th className="p-3 text-left font-semibold">Código</th>
                           <th className="p-3 text-left font-semibold">
-                            Producto
+                            {config.labels.labelProducto}
                           </th>
                           <th className="p-3 text-left font-semibold">
                             Descripción
@@ -678,7 +681,7 @@ export default function VerMovimientoRealizadoModal(props: Props) {
                                   Sin ítems en este movimiento
                                 </span>
                                 <span className="text-xs text-slate-400">
-                                  No hay productos registrados para mostrar.
+                                  No hay {config.labels.labelProductos.toLowerCase()} registrados para mostrar.
                                 </span>
                               </div>
                             </td>
