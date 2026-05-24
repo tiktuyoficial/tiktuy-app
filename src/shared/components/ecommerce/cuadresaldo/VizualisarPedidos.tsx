@@ -2,8 +2,8 @@
 import { useMemo, useState, useCallback } from "react";
 import type { PedidoDiaItem } from "@/services/ecommerce/cuadreSaldo/cuadreSaldoC.types";
 import Buttonx from "@/shared/common/Buttonx";
-import { useRoleUiConfig } from "@/auth/constants/useRoleUiConfig";
 import TableActionx from "@/shared/common/TableActionx";
+import { useRoleUiConfig } from "@/auth/constants/useRoleUiConfig";
 
 /**
  *Compat para:
@@ -92,7 +92,7 @@ const isRejectedPedido = (p: any): boolean => {
   return !normMetodoPago(metodoPagoDe(p));
 };
 
-const metodoPagoLabel = (metodoPago: unknown) => {
+const metodoPagoLabel = (metodoPago: unknown, config: any) => {
   const m = normMetodoPago(metodoPago);
 
   // si no hay método => Pedido rechazado
@@ -391,7 +391,7 @@ export default function VizualisarPedidos({
                           </td>
 
                           <td className="px-4 py-3 text-slate-700">
-                            {metodoPagoLabel(mp)}
+                            {metodoPagoLabel(mp, config)}
                           </td>
 
                           <td className="px-4 py-3 text-slate-700 tabular-nums">

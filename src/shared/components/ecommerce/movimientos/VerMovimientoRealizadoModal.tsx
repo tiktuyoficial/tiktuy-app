@@ -85,7 +85,7 @@ export default function VerMovimientoRealizadoModal(props: Props) {
   const { open, onClose } = props;
   const { token } = useAuth();
   const config = useRoleUiConfig();
-  const modalRef = useRef<HTMLDivElement>(null);
+  // const modalRef = useRef<HTMLDivElement>(null);
 
   // Estado interno cuando trabajamos con uuid
   const [detail, setDetail] = useState<MovimientoDetalle | null>(null);
