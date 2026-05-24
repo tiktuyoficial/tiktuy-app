@@ -84,12 +84,14 @@ export default function PedidosTableCompletado({ onVer, filtros }: Props) {
   const formatearMoneda = (n: number) => `S/. ${n.toFixed(2)}`;
 
   const calcularMonto = (p: Pedido) =>
-    Number(
-      (p.detalles || []).reduce(
-        (acc, d) => acc + Number(d.cantidad) * Number(d.precio_unitario),
-        0
-      )
-    );
+    p.monto_recaudar != null
+      ? Number(p.monto_recaudar)
+      : Number(
+        (p.detalles || []).reduce(
+          (acc, d) => acc + Number(d.cantidad) * Number(d.precio_unitario),
+          0
+        )
+      );
 
   const EstadoPill = ({ estado }: { estado: string }) => {
     const e = (estado || "").toLowerCase();
