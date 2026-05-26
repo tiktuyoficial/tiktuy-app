@@ -690,26 +690,41 @@ export default function TablePedidoCourier({
               className="min-w-full table-fixed text-[12px] bg-white border-b border-gray30 rounded-t-md"
             >
               <colgroup>
-                <col className="w-[5%]" />
-                <col className="w-[12%]" />
-                <col className="w-[12%]" />
+                {/* 1. Checkbox */}
+                <col className="w-[4%]" />
+                {/* 2. Fec. Entrega */}
+                <col className="w-[8%]" />
+                {/* 3. Distrito */}
+                <col className="w-[8%]" />
+                {/* 4. EntityColumn */}
                 <col className="w-[10%]" />
+                {/* 5. Cliente */}
                 <col className="w-[10%]" />
 
                 {/* Si es pendientes, compartimos ancho entre dirección y referencia */}
                 {view === 'pendientes' ? (
                   <>
-                    <col className="w-[18%]" />
-                    <col className="w-[10%]" />
+                    <col className="w-[12%]" />
+                    <col className="w-[16%]" />
                   </>
                 ) : (
-                  <col className="w-[28%]" />
+                  <col className="w-[22%]" />
                 )}
 
-                <col className="w-[8%]" />
-                <col className="w-[10%]" />
-                <col className="w-[10%]" />
-                <col className="w-[5%]" />
+                {view === 'pendientes' ? (
+                  <col className="w-[12%]" />
+                ) : (
+                  <col className="w-[18%]" />
+                )}
+
+                {/* 9. Cantidad */}
+                <col className="w-[6%]" />
+                {/* 10. Monto */}
+                <col className="w-[6%]" />
+                {/* 11. Estado (pendientes o terminados) */}
+                {(view === "pendientes" || view === "terminados") && <col className="w-[6%]" />}
+                {/* 12. Acciones */}
+                <col className="w-[4%]" />
               </colgroup>
 
               <thead className="bg-[#E5E7EB]">
@@ -743,6 +758,7 @@ export default function TablePedidoCourier({
                   <th className="px-4 py-3 text-left">{config.labels.tableEntityColumn}</th>
                   <th className="px-4 py-3 text-left">Cliente</th>
                   <th className="px-4 py-3 text-left">Dirección de Entrega</th>
+                  <th className="px-4 py-3 text-left">{config.labels.tableProductsCarts}</th>
                   {(view === "pendientes") && (
                     <th className="px-4 py-3 text-left">Referencia</th>
                   )}
@@ -812,6 +828,31 @@ export default function TablePedidoCourier({
                         title={direccion}
                       >
                         {direccion || "-"}
+                      </td>
+
+                      <td 
+                        className="h-12 px-4 py-3 text-gray70" 
+                        title={p.items?.map(it => `${it.nombre} (${it.cantidad})`).join(", ")}
+                      >
+                        <div className="line-clamp-2 text-xs leading-[1.6]">
+                          {(() => {
+                            if (!p.items || p.items.length === 0) return <span>-</span>;
+                            
+                            return p.items.map((it, idx) => (
+                              <span key={idx}>
+                                {it.nombre}
+                                <Badgex 
+                                  size="xs" 
+                                  shape="pill" 
+                                  className="inline-flex items-center justify-center  bg-indigo-50 text-indigo-600 border border-indigo-200 px-1.5 text-[10px] min-h-[16px] mx-1 align-text-bottom"
+                                >
+                                  {it.cantidad}
+                                </Badgex>
+                                {idx < p.items!.length - 1 && <span className="mr-1">,</span>}
+                              </span>
+                            ));
+                          })()}
+                        </div>
                       </td>
 
                       {(view === "pendientes") && (

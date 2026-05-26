@@ -39,7 +39,7 @@ export type RoleLabels = {
   // Tabla general
   tableEntityColumn: string;  // Nombre de columna (Ej. "Ecommerce", "Restaurante", "Motorizado")
   tableEntityPlaceholder: string; // "Seleccionar Ecommerce", etc.
-  
+  tableProductsCarts: string;
   // Pedidos
   pedidosTitle: string;
   pedidosSubtitle: string;
@@ -121,6 +121,7 @@ const ecommerceConfig: RoleUiConfig = {
     desassociateTitle: 'Desasociar Courier',
     tableEntityColumn: 'Courier',
     tableEntityPlaceholder: 'Seleccionar Courier',
+    tableProductsCarts:'Productos',
     pedidosTitle: 'Gestión de Pedidos',
     pedidosSubtitle: 'Administración de los pedidos generados y asignados',
     pedidosCreateButton: 'Crear Pedido',
@@ -185,6 +186,7 @@ const restauranteConfig: RoleUiConfig = {
     desassociateTitle: 'Desasociar Delivery',
     tableEntityColumn: 'Delivery',
     tableEntityPlaceholder: 'Seleccionar Delivery',
+    tableProductsCarts: 'Ordenes',
     pedidosTitle: 'Gestión de Pedidos',
     pedidosSubtitle: 'Administración de las órdenes generadas y en preparación',
     pedidosCreateButton: 'Nueva Orden',
@@ -249,6 +251,7 @@ const courierConfig: RoleUiConfig = {
     desassociateTitle: 'Desasociar Ecommerce',
     tableEntityColumn: 'Ecommerce',
     tableEntityPlaceholder: 'Seleccionar Ecommerce',
+    tableProductsCarts: 'Ordenes',
     pedidosTitle: 'Gestión de Pedidos',
     pedidosSubtitle: 'Administración y asignación de pedidos a motorizados',
     pedidosCreateButton: 'Asignar Pedido',
@@ -322,6 +325,7 @@ const deliveryConfig: RoleUiConfig = {
     labelAlmacen: 'Almacén',
     labelProducto: 'Plato',
     labelProductos: 'Platos',
+    tableProductsCarts: 'Ordenes',
     pedidosCrearDesc: 'Una orden puede tener varios platos y una sola fecha de entrega.',
     pedidosAgregarProd: 'Agregar plato',
     searchProductoPlaceholder: 'Buscar platos por nombre, código o descripción',
