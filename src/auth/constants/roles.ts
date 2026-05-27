@@ -59,33 +59,34 @@ export type VisualRole = keyof typeof visualRoleLabels;
  */
 export function getVisualRole(
   roleName?: string | null,
-  adicional?: { rubro?: string | null; nombre_comercial?: string | null }
+  adicional?: { rubro?: string | null; nombre_comercial?: string | null; nombre_usuario?: string | null }
 ): VisualRole {
   const normRole = String(roleName || '').toLowerCase();
+  const nombreAComprobar = (adicional?.nombre_comercial || adicional?.nombre_usuario || '').toLowerCase().trim();
   
   if (normRole === 'ecommerce') {
-    if (adicional?.rubro?.toLowerCase() === 'restaurante' || adicional?.nombre_comercial?.endsWith(' [Restaurante]')) {
+    if (adicional?.rubro?.toLowerCase() === 'restaurante' || nombreAComprobar.endsWith('[restaurante]')) {
       return 'restaurante';
     }
     return 'ecommerce';
   }
   
   if (normRole === 'representante_ecommerce') {
-    if (adicional?.rubro?.toLowerCase() === 'restaurante' || adicional?.nombre_comercial?.endsWith(' [Restaurante]')) {
+    if (adicional?.rubro?.toLowerCase() === 'restaurante' || nombreAComprobar.endsWith('[restaurante]')) {
       return 'representante_restaurante';
     }
     return 'representante_ecommerce';
   }
 
   if (normRole === 'courier') {
-    if (adicional?.nombre_comercial?.endsWith(' [Delivery]')) {
+    if (nombreAComprobar.endsWith('[delivery]')) {
       return 'delivery';
     }
     return 'courier';
   }
 
   if (normRole === 'representante_courier') {
-    if (adicional?.nombre_comercial?.endsWith(' [Delivery]')) {
+    if (nombreAComprobar.endsWith('[delivery]')) {
       return 'representante_delivery';
     }
     return 'representante_courier';
@@ -99,7 +100,7 @@ export function getVisualRole(
  */
 export function cleanBusinessName(name?: string | null): string {
   if (!name) return '';
-  return name.replace(/\s*\[Delivery\]$/, '').replace(/\s*\[Restaurante\]$/, '');
+  return name.replace(/\s*\[delivery\]\s*$/i, '').replace(/\s*\[restaurante\]\s*$/i, '').trim();
 }
 
 // Módulos posibles que puede tener un trabajador (tipo de acceso por perfil)
