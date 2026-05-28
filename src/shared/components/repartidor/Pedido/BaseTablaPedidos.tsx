@@ -8,10 +8,11 @@ import type {
 
 import { Selectx, SelectxDate } from "@/shared/common/Selectx";
 import Buttonx from "@/shared/common/Buttonx";
-import { SearchInputx } from "@/shared/common/SearchInputx";
+import { useAuth } from "@/auth/context/useAuth";
 import Tittlex from "@/shared/common/Tittlex";
 import TableActionx from "@/shared/common/TableActionx";
 import Badgex from "@/shared/common/Badgex";
+import { SearchInputx } from "@/shared/common/SearchInputx";
 
 type ViewKind = "hoy" | "pendientes" | "terminados";
 type PropsBase = {
@@ -121,6 +122,9 @@ export default function BaseTablaPedidos({
   subtitle,
   refreshKey,
 }: PropsBase) {
+  const { user } = useAuth();
+  const isDelivery = user?.motorizado_courier_nombre?.toLowerCase().includes('[delivery]');
+
   const [page, setPage] = useState(1);
   const [desde, setDesde] = useState("");
   const [hasta, setHasta] = useState("");
@@ -429,19 +433,19 @@ export default function BaseTablaPedidos({
         <div className="bg-white rounded-md overflow-hidden shadow-default border border-gray30 min-w-0 relative z-0">
           <div className="relative overflow-x-auto lg:overflow-x-visible bg-white">
             <table className="w-full min-w-[980px] lg:min-w-0 table-auto text-[12px] bg-white border-b border-gray30 rounded-t-md">
-              <thead className="bg-[#E5E7EB]">
+              <thead className="bg-[#E5E7EB]" >
                 <tr className="text-gray70 font-roboto font-medium">
-                  <th className="px-4 py-3 whitespace-nowrap">Fec. Entrega</th>
-                  <th className="px-4 py-3 whitespace-nowrap">Distrito</th>
-                  <th className="px-4 py-3 whitespace-nowrap">Cliente</th>
-                  <th className="px-4 py-3 whitespace-nowrap">
+                  <th className="px-4 py-3 whitespace-nowrap text-start">Fec. Entrega</th>
+                  <th className="px-4 py-3 whitespace-nowrap text-start">Distrito</th>
+                  <th className="px-4 py-3 whitespace-nowrap text-start">Cliente</th>
+                  <th className="px-4 py-3 whitespace-nowrap text-start">
                     Dirección de Entrega
                   </th>
-                  <th className="px-4 py-3 whitespace-nowrap">
-                    Cant. de productos
+                  <th className="px-4 py-3 whitespace-nowrap text-start">
+                    Cant. de {isDelivery ? 'platos' : 'productos'}
                   </th>
-                  <th className="px-4 py-3 whitespace-nowrap">Monto</th>
-                  <th className="px-4 py-3 whitespace-nowrap">Estado</th>
+                  <th className="px-4 py-3 whitespace-nowrap text-start">Monto</th>
+                  <th className="px-4 py-3 whitespace-nowrap text-center">Estado</th>
 
                   <th
                     className="
@@ -496,7 +500,7 @@ export default function BaseTablaPedidos({
                       </td>
 
                       {/*  ESTADO con Badgex */}
-                      <td className="h-12 px-4 py-3 whitespace-nowrap">
+                      <td className="h-12 px-4 py-3 whitespace-nowrap text-center">
                         <EstadoBadge estado={p.estado_nombre as any} />
                       </td>
 

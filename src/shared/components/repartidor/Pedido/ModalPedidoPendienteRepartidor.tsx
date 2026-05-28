@@ -7,6 +7,7 @@ import { InputxTextarea } from "@/shared/common/Inputx";
 //  tus componentes
 import ImageUploadx from "@/shared/common/ImageUploadx";
 import ImagePreviewModalx from "@/shared/common/ImagePreviewModalx";
+import { cleanBusinessName } from "@/auth/constants/roles";
 
 type ResultadoFinal = "ENTREGADO" | "RECHAZADO";
 type MetodoPagoUI = "EFECTIVO" | "BILLETERA" | "DIRECTO_ECOMMERCE";
@@ -16,7 +17,7 @@ type ConfirmPayload =
   | {
     pedidoId: number;
     resultado: "ENTREGADO";
-    metodo_pago_id: number; // ✅ ID REAL de MetodoPago (DB)
+    metodo_pago_id: number; //  ID REAL de MetodoPago (DB)
     observacion?: string;
     evidenciaFile?: File;
     fecha_entrega_real?: string;
@@ -48,6 +49,8 @@ const DEFAULT_METODO_PAGO_IDS = {
   DIRECTO_ECOMMERCE: 3,
 } as const;
 
+import { useAuth } from "@/auth/context/useAuth";
+
 export default function ModalEntregaRepartidor({
   isOpen,
   onClose,
@@ -55,6 +58,7 @@ export default function ModalEntregaRepartidor({
   onConfirm,
   metodoPagoIds,
 }: Props) {
+  const { user } = useAuth();
   const [paso, setPaso] = useState<Paso>("resultado");
   const [submitting, setSubmitting] = useState(false);
 
@@ -93,7 +97,7 @@ export default function ModalEntregaRepartidor({
     const codigo = pedido.codigo_pedido || `C${String(pedido.id).padStart(2, "0")}`;
     const direccion = pedido.direccion_envio || "—";
     const cliente = pedido.cliente?.nombre || "—";
-    const ecommerce = pedido.ecommerce?.nombre_comercial || "—";
+    const ecommerce = cleanBusinessName(pedido.ecommerce?.nombre_comercial || "—");
     const referencia = pedido.cliente?.referencia || "—";
     const monto = Number(pedido.monto_recaudar || 0);
 
@@ -389,7 +393,9 @@ export default function ModalEntregaRepartidor({
                 <table className="min-w-full table-fixed text-[13px] bg-white">
                   <thead className="bg-[#E5E7EB]">
                     <tr className="text-gray70 font-roboto font-medium">
-                      <th className="px-4 py-2 text-left">Producto</th>
+                      <th className="px-4 py-2 text-left">
+                        {pedido.ecommerce?.nombre_comercial?.toLowerCase().includes('[restaurante]') ? 'Plato' : 'Producto'}
+                      </th>
                       <th className="px-4 py-2 text-right w-16">Cant.</th>
                     </tr>
                   </thead>
@@ -480,14 +486,14 @@ export default function ModalEntregaRepartidor({
                 <OpcionCard
                   active={metodo === "BILLETERA"}
                   icon="mdi:qrcode-scan"
-                  title="Pago Digital al Courier"
+                  title={`Pago Digital al ${user?.motorizado_courier_nombre?.toLowerCase().includes('[delivery]') ? 'Delivery' : 'Courier'}`}
                   onClick={() => handleMetodo("BILLETERA")}
                   activeColor="yellow"
                 />
                 <OpcionCard
                   active={metodo === "DIRECTO_ECOMMERCE"}
                   icon="mdi:credit-card-outline"
-                  title="Pago Digital al Ecommerce"
+                  title={`Pago Digital al ${pedido?.ecommerce?.nombre_comercial?.toLowerCase().includes('[restaurante]') ? 'Restaurante' : 'Ecommerce'}`}
                   onClick={() => handleMetodo("DIRECTO_ECOMMERCE")}
                   activeColor="blue"
                 />
